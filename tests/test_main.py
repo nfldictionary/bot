@@ -419,10 +419,17 @@ def test_build_story_html_bundle(tmp_path) -> None:
     build_seasons(output_root=output_root, start_year=2025, end_year=2025)
     paths = build_story_html_bundle(output_root=output_root, season=2025)
 
-    assert len(paths) == 5
+    assert len(paths) == 7
     index_html = (output_root / "stories" / "2025" / "index.html").read_text(encoding="utf-8")
     strategy_html = (output_root / "stories" / "2025" / "strategy-atlas.html").read_text(encoding="utf-8")
+    comparison_board_html = (output_root / "stories" / "2025" / "team-comparison-board.html").read_text(encoding="utf-8")
+    comparison_wall_html = (output_root / "stories" / "2025" / "team-comparison-wall.html").read_text(encoding="utf-8")
     roster_html = (output_root / "stories" / "2025" / "roster-currents.html").read_text(encoding="utf-8")
     assert "SIS Visual Stories 2025" in index_html
+    assert "Team Comparison Board 2025" in index_html
     assert "Patrick Mahomes" in strategy_html or "Strategy Atlas 2025" in strategy_html
+    assert "League Comparison Matrix" in comparison_board_html
+    assert "Chiefs" in comparison_board_html and "Bills" in comparison_board_html
+    assert "Team Comparison Wall 2025" in comparison_wall_html
+    assert "air-led" in comparison_wall_html or "balanced" in comparison_wall_html
     assert "Journeyman Player" in roster_html

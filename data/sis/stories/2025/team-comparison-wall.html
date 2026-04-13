@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Team Comparison Wall 2025</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #546274;
+      --line: rgba(15, 23, 42, 0.12);
+      --panel: rgba(255, 255, 255, 0.78);
+      --shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+      --radius: 26px;
+      --font: "Avenir Next", "Pretendard", "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+      --bg: radial-gradient(circle at top left, rgba(45,212,191,0.28), transparent 28%), radial-gradient(circle at bottom right, rgba(99,102,241,0.22), transparent 32%), linear-gradient(180deg, #f1fffb 0%, #eff7ff 48%, #f8f6ff 100%); --orb: radial-gradient(circle, rgba(13,148,136,0.62), rgba(13,148,136,0.0) 72%); --accent: linear-gradient(90deg, #14b8a6, #6366f1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font);
+      background: var(--bg);
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .page {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 30px 0 60px;
+    }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: calc(var(--radius) + 8px);
+      padding: 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,255,255,0.52));
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.45);
+      backdrop-filter: blur(10px);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -70px auto;
+      width: 260px;
+      height: 260px;
+      background: var(--orb);
+      filter: blur(10px);
+      opacity: 0.75;
+      border-radius: 50%;
+    }
+    .eyebrow {
+      display: inline-flex;
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.58);
+      border: 1px solid rgba(15,23,42,0.08);
+    }
+    h1 {
+      position: relative;
+      margin: 18px 0 12px;
+      max-width: 820px;
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      z-index: 1;
+    }
+    .hero p {
+      position: relative;
+      margin: 0;
+      max-width: 760px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--muted);
+      z-index: 1;
+    }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    .nav a {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(15,23,42,0.08);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .section-title {
+      margin: 32px 0 14px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #334155;
+    }
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+    .grid.two {
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    .grid.three {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .grid.four {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+    }
+    .panel h2, .panel h3 {
+      margin: 0 0 14px;
+      letter-spacing: -0.03em;
+    }
+    .kicker {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .stat-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.52);
+      border: 1px solid rgba(15,23,42,0.06);
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .note {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+    .list-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.58);
+      border: 1px solid rgba(15,23,42,0.06);
+    }
+    .list-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .list-label {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .list-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .list-value {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+    }
+    .track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.08);
+      overflow: hidden;
+    }
+    .fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.68);
+      border: 1px solid rgba(15,23,42,0.08);
+    }
+    .table-wrap {
+      overflow-x: auto;
+    }
+    .compare-table {
+      width: 100%;
+      min-width: 1020px;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+    .compare-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(12px);
+    }
+    .compare-table th, .compare-table td {
+      border-bottom: 0;
+      vertical-align: middle;
+    }
+    .team-lockup {
+      min-width: 180px;
+    }
+    .team-lockup strong {
+      display: block;
+      font-size: 14px;
+    }
+    .team-lockup span {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .metric-cell {
+      position: relative;
+      overflow: hidden;
+      min-width: 120px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,0.08);
+      background: rgba(255,255,255,0.74);
+    }
+    .metric-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      opacity: 0.22;
+    }
+    .metric-value {
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .metric-sub {
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .cluster-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .cluster-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.64);
+      border: 1px solid rgba(15,23,42,0.08);
+    }
+    .cluster-card h3 {
+      margin: 0 0 10px;
+    }
+    .cluster-count {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      margin-bottom: 10px;
+    }
+    .cluster-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .wall-card {
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(15,23,42,0.08);
+      box-shadow: var(--shadow);
+    }
+    .wall-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+    .wall-rank {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.06);
+    }
+    .wall-team {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .mini-metrics {
+      display: grid;
+      gap: 10px;
+    }
+    .mini-row {
+      display: grid;
+      grid-template-columns: 74px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }
+    .mini-label {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+    .mini-track {
+      position: relative;
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(15,23,42,0.08);
+    }
+    .mini-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+    }
+    .mini-value {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    .footer {
+      margin-top: 28px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    @media (max-width: 760px) {
+      .page {
+        width: min(100% - 20px, 1240px);
+        padding-top: 20px;
+      }
+      .hero {
+        padding: 22px;
+      }
+      .panel {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">All-Team Cards</div>
+      <h1>Team Comparison Wall 2025</h1>
+      <p>32개 팀을 작은 카드 단위로 압축해 한 번에 훑는 버전입니다. 에디터가 빠르게 팀 톤을 비교하거나 썸네일형 비교 콘텐츠로 옮기기 좋습니다.</p>
+      <nav class="nav">
+        <a href="./index.html">Index</a>
+        <a href="./strategy-atlas.html">Strategy Atlas</a>
+        <a href="./team-comparison-board.html">Comparison Board</a>
+        <a href="./team-comparison-wall.html">Comparison Wall</a>
+        <a href="./skill-stars.html">Skill Stars</a>
+        <a href="./franchise-fingerprints.html">Fingerprints</a>
+        <a href="./roster-currents.html">Roster Currents</a>
+      </nav>
+    </section>
+    <section class="section-title">At A Glance</section><section class="panel"><div class="stat-grid"><article class="stat-card"><div class="stat-label">Wall Cards</div><div class="stat-value">32</div></article><article class="stat-card"><div class="stat-label">Top TD Team</div><div class="stat-value">LA · 65</div></article><article class="stat-card"><div class="stat-label">Best Balance</div><div class="stat-value">NYJ · 1.14x</div></article><article class="stat-card"><div class="stat-label">Archetypes</div><div class="stat-value">4</div></article></div></section><section class="section-title">Family Notes</section><section class="panel"><h3>First Teams to Scan by Style</h3><div class="table-wrap"><table><thead><tr><th>family</th><th>teams</th><th>count</th></tr></thead><tbody><tr><td>air-led</td><td>LA, DET, DAL, SF, CIN</td><td>9</td></tr><tr><td>balanced</td><td>NE, JAC, IND, SEA, DEN</td><td>9</td></tr><tr><td>ground-led</td><td>BUF, CHI, BAL, PHI, NYG</td><td>10</td></tr><tr><td>pressure-first</td><td>PIT, HOU, MIN, CLE</td><td>4</td></tr></tbody></table></div></section><section class="section-title">All 32 on One Wall</section><section class="grid four"><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>LA</h3><div class="wall-team">Rams</div></div><div class="wall-rank">#1</div></div><div class="chips"><span class="chip">Offense 6,709</span><span class="chip">Players 83</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:100.00%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">6,709</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:100.00%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">4,557</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:79.29%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,152</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:69.12%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">47</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:73.45%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">83</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>BUF</h3><div class="wall-team">Bills</div></div><div class="wall-rank">#2</div></div><div class="chips"><span class="chip">Offense 6,397</span><span class="chip">Players 96</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:95.35%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">6,397</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:80.82%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,683</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:100.00%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,714</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:52.94%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">36</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:84.96%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">96</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>NE</h3><div class="wall-team">Patriots</div></div><div class="wall-rank">#3</div></div><div class="chips"><span class="chip">Offense 6,449</span><span class="chip">Players 105</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:96.12%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">6,449</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:93.44%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">4,258</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:80.73%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,191</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:51.47%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">35</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:92.92%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">105</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>DET</h3><div class="wall-team">Lions</div></div><div class="wall-rank">#4</div></div><div class="chips"><span class="chip">Offense 6,344</span><span class="chip">Players 105</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:94.56%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">6,344</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:94.43%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">4,303</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:75.20%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,041</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:72.06%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">49</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:92.92%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">105</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>JAC</h3><div class="wall-team">Jaguars</div></div><div class="wall-rank">#5</div></div><div class="chips"><span class="chip">Offense 5,735</span><span class="chip">Players 86</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:85.48%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,735</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:82.93%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,779</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:72.07%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,956</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:47.06%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">32</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:76.11%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">86</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>IND</h3><div class="wall-team">Colts</div></div><div class="wall-rank">#6</div></div><div class="chips"><span class="chip">Offense 5,880</span><span class="chip">Players 105</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:87.64%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,880</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:84.99%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,873</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:73.95%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,007</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:57.35%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">39</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:92.92%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">105</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>DAL</h3><div class="wall-team">Cowboys</div></div><div class="wall-rank">#7</div></div><div class="chips"><span class="chip">Offense 6,663</span><span class="chip">Players 89</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:99.31%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">6,663</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:99.34%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">4,527</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:78.70%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,136</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:51.47%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">35</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:78.76%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">89</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>SEA</h3><div class="wall-team">Seahawks</div></div><div class="wall-rank">#8</div></div><div class="chips"><span class="chip">Offense 5,973</span><span class="chip">Players 94</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:89.03%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,973</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:85.08%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,877</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:77.23%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,096</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:69.12%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">47</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:83.19%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">94</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>CHI</h3><div class="wall-team">Bears</div></div><div class="wall-rank">#9</div></div><div class="chips"><span class="chip">Offense 6,282</span><span class="chip">Players 89</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:93.64%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">6,282</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:83.96%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,826</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:90.49%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,456</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:51.47%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">35</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:78.76%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">89</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>SF</h3><div class="wall-team">49ers</div></div><div class="wall-rank">#10</div></div><div class="chips"><span class="chip">Offense 5,974</span><span class="chip">Players 99</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:89.04%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,974</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:91.22%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">4,157</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:66.95%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,817</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:29.41%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">20</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:87.61%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">99</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>CIN</h3><div class="wall-team">Bengals</div></div><div class="wall-rank">#11</div></div><div class="chips"><span class="chip">Offense 5,596</span><span class="chip">Players 87</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:83.41%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,596</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:87.89%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">4,005</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:58.62%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,591</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:51.47%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">35</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:76.99%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">87</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>BAL</h3><div class="wall-team">Ravens</div></div><div class="wall-rank">#12</div></div><div class="chips"><span class="chip">Offense 5,647</span><span class="chip">Players 92</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:84.17%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,647</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:65.50%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">2,985</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:98.08%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,662</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:44.12%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">30</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:81.42%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">92</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>PHI</h3><div class="wall-team">Eagles</div></div><div class="wall-rank">#13</div></div><div class="chips"><span class="chip">Offense 5,291</span><span class="chip">Players 95</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:78.86%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,291</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:72.48%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,303</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:73.25%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,988</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:61.76%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">42</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:84.07%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">95</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>DEN</h3><div class="wall-team">Broncos</div></div><div class="wall-rank">#14</div></div><div class="chips"><span class="chip">Offense 5,825</span><span class="chip">Players 91</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:86.82%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,825</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:83.54%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,807</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:74.36%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,018</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:100.00%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">68</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:80.53%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">91</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>NYG</h3><div class="wall-team">Giants</div></div><div class="wall-rank">#15</div></div><div class="chips"><span class="chip">Offense 5,669</span><span class="chip">Players 101</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:84.50%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,669</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:76.23%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,474</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:80.88%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,195</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:57.35%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">39</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:89.38%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">101</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">pressure-first</div><h3>PIT</h3><div class="wall-team">Steelers</div></div><div class="wall-rank">#16</div></div><div class="chips"><span class="chip">Offense 5,196</span><span class="chip">Players 107</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:77.45%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,196</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:75.49%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,440</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:64.70%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,756</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:70.59%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">48</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:94.69%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">107</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#7c3aed,#ec4899);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>GB</h3><div class="wall-team">Packers</div></div><div class="wall-rank">#17</div></div><div class="chips"><span class="chip">Offense 5,654</span><span class="chip">Players 95</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:84.27%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,654</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:79.37%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,617</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:75.06%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,037</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:52.94%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">36</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:84.07%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">95</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>TB</h3><div class="wall-team">Buccaneers</div></div><div class="wall-rank">#18</div></div><div class="chips"><span class="chip">Offense 5,447</span><span class="chip">Players 89</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:81.19%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,447</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:76.80%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,500</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:71.74%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,947</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:54.41%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">37</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:78.76%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">89</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>WAS</h3><div class="wall-team">Commanders</div></div><div class="wall-rank">#19</div></div><div class="chips"><span class="chip">Offense 5,419</span><span class="chip">Players 96</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:80.77%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,419</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:68.66%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,129</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:84.38%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,290</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:61.76%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">42</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:84.96%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">96</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>ARI</h3><div class="wall-team">Cardinals</div></div><div class="wall-rank">#20</div></div><div class="chips"><span class="chip">Offense 5,538</span><span class="chip">Players 113</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:82.55%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,538</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:86.79%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,955</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:58.33%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,583</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:44.12%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">30</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:100.00%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">113</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">pressure-first</div><h3>HOU</h3><div class="wall-team">Texans</div></div><div class="wall-rank">#21</div></div><div class="chips"><span class="chip">Offense 5,559</span><span class="chip">Players 102</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:82.86%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,559</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:81.35%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,707</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:68.24%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,852</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:69.12%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">47</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:90.27%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">102</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#7c3aed,#ec4899);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>KC</h3><div class="wall-team">Chiefs</div></div><div class="wall-rank">#22</div></div><div class="chips"><span class="chip">Offense 5,451</span><span class="chip">Players 90</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:81.25%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,451</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:79.86%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,639</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:66.76%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,812</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:51.47%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">35</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:79.65%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">90</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>MIA</h3><div class="wall-team">Dolphins</div></div><div class="wall-rank">#23</div></div><div class="chips"><span class="chip">Offense 5,112</span><span class="chip">Players 99</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:76.20%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,112</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:67.32%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,068</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:75.31%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,044</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:57.35%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">39</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:87.61%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">99</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>ATL</h3><div class="wall-team">Falcons</div></div><div class="wall-rank">#24</div></div><div class="chips"><span class="chip">Offense 5,661</span><span class="chip">Players 97</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:84.38%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,661</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:77.31%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,523</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:78.78%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,138</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:83.82%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">57</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:85.84%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">97</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>LAC</h3><div class="wall-team">Chargers</div></div><div class="wall-rank">#25</div></div><div class="chips"><span class="chip">Offense 5,675</span><span class="chip">Players 97</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:84.59%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,675</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:79.17%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,608</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:76.16%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,067</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:66.18%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">45</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:85.84%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">97</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>CAR</h3><div class="wall-team">Panthers</div></div><div class="wall-rank">#26</div></div><div class="chips"><span class="chip">Offense 5,025</span><span class="chip">Players 96</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:74.90%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,025</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:66.89%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,048</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:72.84%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,977</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:44.12%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">30</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:84.96%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">96</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">pressure-first</div><h3>MIN</h3><div class="wall-team">Vikings</div></div><div class="wall-rank">#27</div></div><div class="chips"><span class="chip">Offense 4,675</span><span class="chip">Players 92</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:69.68%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">4,675</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:62.19%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">2,834</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:67.83%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,841</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:72.06%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">49</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:81.42%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">92</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#7c3aed,#ec4899);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>NO</h3><div class="wall-team">Saints</div></div><div class="wall-rank">#28</div></div><div class="chips"><span class="chip">Offense 5,331</span><span class="chip">Players 96</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:79.46%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">5,331</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:81.81%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">3,728</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:59.06%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,603</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:66.18%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">45</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:84.96%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">96</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">ground-led</div><h3>NYJ</h3><div class="wall-team">Jets</div></div><div class="wall-rank">#29</div></div><div class="chips"><span class="chip">Offense 4,481</span><span class="chip">Players 106</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:66.79%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">4,481</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:52.34%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">2,385</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:77.23%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">2,096</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:38.24%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">26</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:93.81%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">106</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">pressure-first</div><h3>CLE</h3><div class="wall-team">Browns</div></div><div class="wall-rank">#30</div></div><div class="chips"><span class="chip">Offense 4,456</span><span class="chip">Players 105</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:66.42%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">4,456</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:61.60%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">2,807</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:60.76%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,649</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:77.94%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">53</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:92.92%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">105</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#7c3aed,#ec4899);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">balanced</div><h3>TEN</h3><div class="wall-team">Titans</div></div><div class="wall-rank">#31</div></div><div class="chips"><span class="chip">Offense 4,413</span><span class="chip">Players 103</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:65.78%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">4,413</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:61.97%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">2,824</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:58.55%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,589</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:61.76%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">42</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:91.15%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">103</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div></article><article class="wall-card"><div class="wall-top"><div><div class="kicker">air-led</div><h3>LV</h3><div class="wall-team">Raiders</div></div><div class="wall-rank">#32</div></div><div class="chips"><span class="chip">Offense 4,168</span><span class="chip">Players 88</span></div><div class="mini-metrics"><div class="mini-row"><div class="mini-label">Off</div><div class="mini-track"><span class="mini-fill" style="width:62.13%;background:linear-gradient(90deg,#fb7185,#f97316);"></span></div><div class="mini-value">4,168</div></div><div class="mini-row"><div class="mini-label">Pass</div><div class="mini-track"><span class="mini-fill" style="width:62.56%;background:linear-gradient(90deg,#f97316,#facc15);"></span></div><div class="mini-value">2,851</div></div><div class="mini-row"><div class="mini-label">Rush</div><div class="mini-track"><span class="mini-fill" style="width:48.53%;background:linear-gradient(90deg,#22c55e,#14b8a6);"></span></div><div class="mini-value">1,317</div></div><div class="mini-row"><div class="mini-label">Sacks</div><div class="mini-track"><span class="mini-fill" style="width:54.41%;background:linear-gradient(90deg,#6366f1,#a855f7);"></span></div><div class="mini-value">37</div></div><div class="mini-row"><div class="mini-label">Depth</div><div class="mini-track"><span class="mini-fill" style="width:77.88%;background:linear-gradient(90deg,#475569,#94a3b8);"></span></div><div class="mini-value">88</div></div></div><div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:linear-gradient(90deg,#fb7185,#f97316);"></div></div></article></section>
+    <div class="footer">Generated from local SIS parquet for visual exploration.</div>
+  </main>
+</body>
+</html>

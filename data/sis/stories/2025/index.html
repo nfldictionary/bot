@@ -115,6 +115,9 @@
     .grid.three {
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }
+    .grid.four {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -223,6 +226,152 @@
     .table-wrap {
       overflow-x: auto;
     }
+    .compare-table {
+      width: 100%;
+      min-width: 1020px;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+    .compare-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(12px);
+    }
+    .compare-table th, .compare-table td {
+      border-bottom: 0;
+      vertical-align: middle;
+    }
+    .team-lockup {
+      min-width: 180px;
+    }
+    .team-lockup strong {
+      display: block;
+      font-size: 14px;
+    }
+    .team-lockup span {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .metric-cell {
+      position: relative;
+      overflow: hidden;
+      min-width: 120px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,0.08);
+      background: rgba(255,255,255,0.74);
+    }
+    .metric-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      opacity: 0.22;
+    }
+    .metric-value {
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .metric-sub {
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .cluster-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .cluster-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.64);
+      border: 1px solid rgba(15,23,42,0.08);
+    }
+    .cluster-card h3 {
+      margin: 0 0 10px;
+    }
+    .cluster-count {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      margin-bottom: 10px;
+    }
+    .cluster-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .wall-card {
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(15,23,42,0.08);
+      box-shadow: var(--shadow);
+    }
+    .wall-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+    .wall-rank {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.06);
+    }
+    .wall-team {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .mini-metrics {
+      display: grid;
+      gap: 10px;
+    }
+    .mini-row {
+      display: grid;
+      grid-template-columns: 74px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }
+    .mini-label {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+    .mini-track {
+      position: relative;
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(15,23,42,0.08);
+    }
+    .mini-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+    }
+    .mini-value {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -271,12 +420,14 @@
       <nav class="nav">
         <a href="./index.html">Index</a>
         <a href="./strategy-atlas.html">Strategy Atlas</a>
+        <a href="./team-comparison-board.html">Comparison Board</a>
+        <a href="./team-comparison-wall.html">Comparison Wall</a>
         <a href="./skill-stars.html">Skill Stars</a>
         <a href="./franchise-fingerprints.html">Fingerprints</a>
         <a href="./roster-currents.html">Roster Currents</a>
       </nav>
     </section>
-    <section class="section-title">At A Glance</section><section class="panel"><div class="stat-grid"><article class="stat-card"><div class="stat-label">Team Rows</div><div class="stat-value">32</div></article><article class="stat-card"><div class="stat-label">Player Rows</div><div class="stat-value">3,088</div></article><article class="stat-card"><div class="stat-label">Multi-Team Players</div><div class="stat-value">285</div></article><article class="stat-card"><div class="stat-label">Stories</div><div class="stat-value">4</div></article></div></section><section class="section-title">Story Deck</section><section class="grid two"><a class="panel" href="./strategy-atlas.html"><div class="kicker">Team Geometry</div><h2>Strategy Atlas 2025</h2><p class="note">패스와 러시 생산량을 좌표로 배치해 팀 공격 구조와 수비 압박을 동시에 읽는 지도형 콘텐츠.</p><div class="chips"><span class="chip">Scatter</span><span class="chip">Quadrants</span></div></a><a class="panel" href="./skill-stars.html"><div class="kicker">Player Showcase</div><h2>Skill Stars 2025</h2><p class="note">QB, RB, WR, 수비 리더를 카드형 리더보드로 정리한 기사형 HTML.</p><div class="chips"><span class="chip">Leaderboards</span><span class="chip">Editorial</span></div></a><a class="panel" href="./franchise-fingerprints.html"><div class="kicker">Identity Cards</div><h2>Franchise Fingerprints 2025</h2><p class="note">상위 득점 팀의 스타일을 5축 레이더 카드로 비교하는 브랜드형 콘텐츠.</p><div class="chips"><span class="chip">Radar</span><span class="chip">Small Multiples</span></div></a><a class="panel" href="./roster-currents.html"><div class="kicker">Movement Watch</div><h2>Roster Currents 2025</h2><p class="note">멀티팀 선수와 팀별 변동성을 정리한 움직임 중심 HTML 페이지.</p><div class="chips"><span class="chip">Churn</span><span class="chip">Journeys</span></div></a></section>
+    <section class="section-title">At A Glance</section><section class="panel"><div class="stat-grid"><article class="stat-card"><div class="stat-label">Team Rows</div><div class="stat-value">32</div></article><article class="stat-card"><div class="stat-label">Player Rows</div><div class="stat-value">3,088</div></article><article class="stat-card"><div class="stat-label">Multi-Team Players</div><div class="stat-value">285</div></article><article class="stat-card"><div class="stat-label">Stories</div><div class="stat-value">6</div></article></div></section><section class="section-title">Story Deck</section><section class="grid two"><a class="panel" href="./strategy-atlas.html"><div class="kicker">Team Geometry</div><h2>Strategy Atlas 2025</h2><p class="note">패스와 러시 생산량을 좌표로 배치해 팀 공격 구조와 수비 압박을 동시에 읽는 지도형 콘텐츠.</p><div class="chips"><span class="chip">Scatter</span><span class="chip">Quadrants</span></div></a><a class="panel" href="./team-comparison-board.html"><div class="kicker">League Matrix</div><h2>Team Comparison Board 2025</h2><p class="note">전팀 핵심 지표를 한 화면 매트릭스로 압축한 비교 보드.</p><div class="chips"><span class="chip">Matrix</span><span class="chip">All Teams</span></div></a><a class="panel" href="./team-comparison-wall.html"><div class="kicker">All-Team Cards</div><h2>Team Comparison Wall 2025</h2><p class="note">32개 팀을 컴팩트 카드로 동시에 훑는 비교형 HTML.</p><div class="chips"><span class="chip">Cards</span><span class="chip">Overview</span></div></a><a class="panel" href="./skill-stars.html"><div class="kicker">Player Showcase</div><h2>Skill Stars 2025</h2><p class="note">QB, RB, WR, 수비 리더를 카드형 리더보드로 정리한 기사형 HTML.</p><div class="chips"><span class="chip">Leaderboards</span><span class="chip">Editorial</span></div></a><a class="panel" href="./franchise-fingerprints.html"><div class="kicker">Identity Cards</div><h2>Franchise Fingerprints 2025</h2><p class="note">상위 득점 팀의 스타일을 5축 레이더 카드로 비교하는 브랜드형 콘텐츠.</p><div class="chips"><span class="chip">Radar</span><span class="chip">Small Multiples</span></div></a><a class="panel" href="./roster-currents.html"><div class="kicker">Movement Watch</div><h2>Roster Currents 2025</h2><p class="note">멀티팀 선수와 팀별 변동성을 정리한 움직임 중심 HTML 페이지.</p><div class="chips"><span class="chip">Churn</span><span class="chip">Journeys</span></div></a></section>
     <div class="footer">Generated from local SIS parquet for visual exploration.</div>
   </main>
 </body>

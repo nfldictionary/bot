@@ -173,6 +173,9 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     .grid.three {{
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }}
+    .grid.four {{
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }}
     .panel {{
       background: var(--panel);
       border: 1px solid var(--line);
@@ -281,6 +284,152 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     .table-wrap {{
       overflow-x: auto;
     }}
+    .compare-table {{
+      width: 100%;
+      min-width: 1020px;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }}
+    .compare-table thead th {{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(12px);
+    }}
+    .compare-table th, .compare-table td {{
+      border-bottom: 0;
+      vertical-align: middle;
+    }}
+    .team-lockup {{
+      min-width: 180px;
+    }}
+    .team-lockup strong {{
+      display: block;
+      font-size: 14px;
+    }}
+    .team-lockup span {{
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }}
+    .metric-cell {{
+      position: relative;
+      overflow: hidden;
+      min-width: 120px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,0.08);
+      background: rgba(255,255,255,0.74);
+    }}
+    .metric-fill {{
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      opacity: 0.22;
+    }}
+    .metric-value {{
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }}
+    .metric-sub {{
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }}
+    .cluster-grid {{
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }}
+    .cluster-card {{
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.64);
+      border: 1px solid rgba(15,23,42,0.08);
+    }}
+    .cluster-card h3 {{
+      margin: 0 0 10px;
+    }}
+    .cluster-count {{
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      margin-bottom: 10px;
+    }}
+    .cluster-list {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }}
+    .wall-card {{
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(15,23,42,0.08);
+      box-shadow: var(--shadow);
+    }}
+    .wall-top {{
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 14px;
+    }}
+    .wall-rank {{
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.06);
+    }}
+    .wall-team {{
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }}
+    .mini-metrics {{
+      display: grid;
+      gap: 10px;
+    }}
+    .mini-row {{
+      display: grid;
+      grid-template-columns: 74px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }}
+    .mini-label {{
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }}
+    .mini-track {{
+      position: relative;
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(15,23,42,0.08);
+    }}
+    .mini-fill {{
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+    }}
+    .mini-value {{
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }}
     table {{
       width: 100%;
       border-collapse: collapse;
@@ -329,6 +478,8 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
       <nav class="nav">
         <a href="./index.html">Index</a>
         <a href="./strategy-atlas.html">Strategy Atlas</a>
+        <a href="./team-comparison-board.html">Comparison Board</a>
+        <a href="./team-comparison-wall.html">Comparison Wall</a>
         <a href="./skill-stars.html">Skill Stars</a>
         <a href="./franchise-fingerprints.html">Fingerprints</a>
         <a href="./roster-currents.html">Roster Currents</a>
@@ -394,6 +545,141 @@ def _story_table(rows: list[dict[str, Any]]) -> str:
             cells.append(f"<td>{html.escape(rendered)}</td>")
         body.append("<tr>" + "".join(cells) + "</tr>")
     return '<div class="table-wrap"><table><thead><tr>' + head + "</tr></thead><tbody>" + "".join(body) + "</tbody></table></div>"
+
+
+def _format_metric_value(value: float, style: str = "number") -> str:
+    if style == "ratio":
+        return f"{value:.2f}x"
+    if style == "pct":
+        return f"{value * 100:.1f}%"
+    return _format_number(value)
+
+
+def _prepare_team_comparison_frame(frames: dict[str, Any]) -> Any:
+    pandas = _require_pandas()
+    team = frames["team"].copy()
+    player = frames["player"].copy()
+    metrics = [
+        "record_passing_yards",
+        "record_rushing_yards",
+        "record_receiving_yards",
+        "record_defense_sacks",
+        "record_touchdowns_total",
+        "record_efficiency_thirddown_pct",
+        "record_efficiency_redzone_pct",
+    ]
+    for metric in metrics:
+        team[metric] = _safe_numeric(team, metric)
+    team["offense_total"] = team["record_passing_yards"] + team["record_rushing_yards"]
+    team["air_share"] = team["record_passing_yards"] / team["offense_total"].replace(0, 1)
+    team["pass_rush_ratio"] = team["record_passing_yards"] / team["record_rushing_yards"].replace(0, 1)
+    if {"team_alias", "player_id"}.issubset(player.columns):
+        counts = (
+            player.groupby("team_alias")["player_id"]
+            .nunique()
+            .rename("player_count")
+            .reset_index()
+        )
+        team = team.merge(counts, on="team_alias", how="left")
+    else:
+        team["player_count"] = 0.0
+    team["player_count"] = _safe_numeric(team, "player_count")
+    pressure_cutoff = float(team["record_defense_sacks"].quantile(0.75)) if not team.empty else 0.0
+    ratio_high = float(team["pass_rush_ratio"].quantile(0.67)) if not team.empty else 0.0
+    ratio_low = float(team["pass_rush_ratio"].quantile(0.33)) if not team.empty else 0.0
+
+    def label_archetype(row: Any) -> str:
+        if float(row["record_defense_sacks"]) >= pressure_cutoff and float(row["offense_total"]) <= float(team["offense_total"].median()):
+            return "pressure-first"
+        if float(row["pass_rush_ratio"]) >= ratio_high:
+            return "air-led"
+        if float(row["pass_rush_ratio"]) <= ratio_low:
+            return "ground-led"
+        return "balanced"
+
+    team["archetype"] = team.apply(label_archetype, axis=1)
+    return team
+
+
+def _render_metric_matrix(rows: list[dict[str, Any]], metrics: list[dict[str, str]]) -> str:
+    if not rows:
+        return '<p class="note">No comparison rows available.</p>'
+    max_values = {
+        metric["key"]: max(float(row[metric["key"]]) for row in rows) or 1.0
+        for metric in metrics
+    }
+    head = (
+        '<table class="compare-table"><thead><tr><th>Team</th>'
+        + "".join(f'<th>{html.escape(metric["label"])}</th>' for metric in metrics)
+        + "</tr></thead><tbody>"
+    )
+    body = []
+    for row in rows:
+        cells = [
+            '<td class="team-lockup">'
+            f'<strong>{html.escape(_safe_text(row["team_name"]))}</strong>'
+            f'<span>{html.escape(_safe_text(row["team_alias"]))} · {html.escape(_safe_text(row["archetype"]))}</span>'
+            "</td>"
+        ]
+        for metric in metrics:
+            value = float(row[metric["key"]])
+            width = max(8.0, (value / max_values[metric["key"]]) * 100.0)
+            cells.append(
+                "<td>"
+                '<div class="metric-cell">'
+                f'<span class="metric-fill" style="width:{width:.2f}%;background:{metric["accent"]};"></span>'
+                f'<span class="metric-value">{html.escape(_format_metric_value(value, metric.get("format", "number")))}</span>'
+                f'<span class="metric-sub">{html.escape(metric["label"])}</span>'
+                "</div>"
+                "</td>"
+            )
+        body.append("<tr>" + "".join(cells) + "</tr>")
+    return '<div class="table-wrap">' + head + "".join(body) + "</tbody></table></div>"
+
+
+def _render_team_wall(rows: list[dict[str, Any]], metrics: list[dict[str, str]]) -> str:
+    if not rows:
+        return '<p class="note">No team cards available.</p>'
+    max_values = {
+        metric["key"]: max(float(row[metric["key"]]) for row in rows) or 1.0
+        for metric in metrics
+    }
+    cards = []
+    for rank, row in enumerate(rows, start=1):
+        archetype_color = {
+            "air-led": "linear-gradient(90deg,#fb7185,#f97316)",
+            "ground-led": "linear-gradient(90deg,#22c55e,#14b8a6)",
+            "pressure-first": "linear-gradient(90deg,#7c3aed,#ec4899)",
+            "balanced": "linear-gradient(90deg,#0ea5e9,#38bdf8)",
+        }.get(_safe_text(row["archetype"]), "linear-gradient(90deg,#0ea5e9,#38bdf8)")
+        mini_rows = []
+        for metric in metrics:
+            value = float(row[metric["key"]])
+            width = max(8.0, (value / max_values[metric["key"]]) * 100.0)
+            mini_rows.append(
+                '<div class="mini-row">'
+                f'<div class="mini-label">{html.escape(metric["short"])}</div>'
+                '<div class="mini-track">'
+                f'<span class="mini-fill" style="width:{width:.2f}%;background:{metric["accent"]};"></span>'
+                "</div>"
+                f'<div class="mini-value">{html.escape(_format_metric_value(value, metric.get("format", "number")))}</div>'
+                "</div>"
+            )
+        cards.append(
+            '<article class="wall-card">'
+            '<div class="wall-top">'
+            f'<div><div class="kicker">{html.escape(_safe_text(row["archetype"]))}</div><h3>{html.escape(_safe_text(row["team_alias"]))}</h3><div class="wall-team">{html.escape(_safe_text(row["team_name"]))}</div></div>'
+            f'<div class="wall-rank">#{rank}</div>'
+            "</div>"
+            '<div class="chips">'
+            f'<span class="chip">Offense {_format_metric_value(float(row["offense_total"]))}</span>'
+            f'<span class="chip">Players {_format_metric_value(float(row["player_count"]))}</span>'
+            "</div>"
+            f'<div class="mini-metrics">{"".join(mini_rows)}</div>'
+            f'<div class="track" style="margin-top:14px;"><div class="fill" style="width:100%;background:{archetype_color};"></div></div>'
+            "</article>"
+        )
+    return '<section class="grid four">' + "".join(cards) + "</section>"
 
 
 def _render_scatter_svg(rows: list[dict[str, Any]], x_label: str, y_label: str) -> str:
@@ -654,6 +940,209 @@ def _build_strategy_story(output_root: Path, season: int, frames: dict[str, Any]
         theme="--bg: radial-gradient(circle at top left, rgba(34,211,238,0.34), transparent 28%), radial-gradient(circle at bottom right, rgba(251,146,60,0.26), transparent 32%), linear-gradient(180deg, #eff9ff 0%, #eef6f4 52%, #fff4e8 100%); --orb: radial-gradient(circle, rgba(14,165,233,0.7), rgba(14,165,233,0.0) 72%); --accent: linear-gradient(90deg, #0ea5e9, #f97316);",
     )
     path = _story_root(output_root, season) / "strategy-atlas.html"
+    path.write_text(html_text, encoding="utf-8")
+    return path
+
+
+def _build_comparison_board_story(output_root: Path, season: int, frames: dict[str, Any]) -> Path:
+    team = _prepare_team_comparison_frame(frames)
+    team = team.sort_values(["offense_total", "record_touchdowns_total"], ascending=False).reset_index(drop=True)
+    metrics = [
+        {
+            "key": "offense_total",
+            "label": "Total Offense",
+            "short": "Off",
+            "accent": "linear-gradient(90deg,#fb7185,#f97316)",
+        },
+        {
+            "key": "record_passing_yards",
+            "label": "Passing",
+            "short": "Pass",
+            "accent": "linear-gradient(90deg,#f97316,#facc15)",
+        },
+        {
+            "key": "record_rushing_yards",
+            "label": "Rushing",
+            "short": "Rush",
+            "accent": "linear-gradient(90deg,#22c55e,#14b8a6)",
+        },
+        {
+            "key": "record_touchdowns_total",
+            "label": "Touchdowns",
+            "short": "TD",
+            "accent": "linear-gradient(90deg,#8b5cf6,#ec4899)",
+        },
+        {
+            "key": "record_defense_sacks",
+            "label": "Sacks",
+            "short": "Sacks",
+            "accent": "linear-gradient(90deg,#0ea5e9,#38bdf8)",
+        },
+        {
+            "key": "player_count",
+            "label": "Depth",
+            "short": "Depth",
+            "accent": "linear-gradient(90deg,#475569,#94a3b8)",
+        },
+    ]
+    family_descriptions = {
+        "air-led": "패스 비중이 높은 팀",
+        "balanced": "패스와 러시가 비교적 균형적인 팀",
+        "ground-led": "지상전 중심의 팀",
+        "pressure-first": "압박 생산이 두드러지는 팀",
+    }
+    cluster_nodes = []
+    for family in ["air-led", "balanced", "ground-led", "pressure-first"]:
+        subset = team[team["archetype"] == family]
+        cluster_nodes.append(
+            '<article class="cluster-card">'
+            f'<div class="kicker">{html.escape(family)}</div>'
+            f'<h3>{html.escape(family_descriptions[family])}</h3>'
+            f'<div class="cluster-count">{_format_number(len(subset))}</div>'
+            '<div class="cluster-list">'
+            + "".join(f'<span class="chip">{html.escape(_safe_text(alias))}</span>' for alias in subset["team_alias"].head(8))
+            + "</div></article>"
+        )
+
+    board_rows = [
+        {
+            "team_alias": _safe_text(row["team_alias"]),
+            "team_name": _safe_text(row["team_name"]),
+            "archetype": _safe_text(row["archetype"]),
+            **{metric["key"]: float(row[metric["key"]]) for metric in metrics},
+        }
+        for _, row in team.iterrows()
+    ]
+    reference_rows = [
+        {
+            "team": _safe_text(row["team_alias"]),
+            "archetype": _safe_text(row["archetype"]),
+            "offense": _format_number(row["offense_total"]),
+            "td": _format_number(row["record_touchdowns_total"]),
+            "sacks": _format_number(row["record_defense_sacks"]),
+            "depth": _format_number(row["player_count"]),
+        }
+        for _, row in team.head(12).iterrows()
+    ]
+    offense_leader = team.iloc[0]
+    pressure_leader = team.sort_values("record_defense_sacks", ascending=False).iloc[0]
+    depth_leader = team.sort_values("player_count", ascending=False).iloc[0]
+    body = (
+        _render_stat_cards(
+            [
+                {"label": "Teams on Screen", "value": _format_number(len(team))},
+                {"label": "Top Offense", "value": f'{_safe_text(offense_leader["team_alias"])} · {_format_number(offense_leader["offense_total"])}'},
+                {"label": "Top Pressure", "value": f'{_safe_text(pressure_leader["team_alias"])} · {_format_number(pressure_leader["record_defense_sacks"])}'},
+                {"label": "Deepest Roster", "value": f'{_safe_text(depth_leader["team_alias"])} · {_format_number(depth_leader["player_count"])}'},
+            ]
+        )
+        + '<section class="section-title">Style Families</section>'
+        + '<section class="cluster-grid">'
+        + "".join(cluster_nodes)
+        + "</section>"
+        + '<section class="section-title">League Comparison Matrix</section>'
+        + '<section class="panel">'
+        + '<div class="kicker">All teams in one board, normalized by metric maxima for instant scanning</div>'
+        + _render_metric_matrix(board_rows, metrics)
+        + "</section>"
+        + '<section class="section-title">Reference Slice</section>'
+        + '<section class="panel"><h3>Top 12 by Total Offense</h3>'
+        + _story_table(reference_rows)
+        + "</section>"
+    )
+    html_text = _render_story_shell(
+        title=f"Team Comparison Board {season}",
+        eyebrow="League Matrix",
+        intro="모든 팀을 한 화면의 매트릭스 보드에 압축해, 공격량과 압박 생산, 득점력, 로스터 깊이를 동시에 비교할 수 있게 만든 버전입니다.",
+        body=body,
+        theme="--bg: radial-gradient(circle at top left, rgba(251,113,133,0.28), transparent 26%), radial-gradient(circle at right, rgba(14,165,233,0.24), transparent 32%), linear-gradient(180deg, #fff5f5 0%, #f3f8ff 48%, #f6fbff 100%); --orb: radial-gradient(circle, rgba(249,115,22,0.62), rgba(249,115,22,0.0) 72%); --accent: linear-gradient(90deg, #fb7185, #0ea5e9);",
+    )
+    path = _story_root(output_root, season) / "team-comparison-board.html"
+    path.write_text(html_text, encoding="utf-8")
+    return path
+
+
+def _build_comparison_wall_story(output_root: Path, season: int, frames: dict[str, Any]) -> Path:
+    team = _prepare_team_comparison_frame(frames)
+    team = team.sort_values(["record_touchdowns_total", "offense_total"], ascending=False).reset_index(drop=True)
+    metrics = [
+        {
+            "key": "offense_total",
+            "label": "Total Offense",
+            "short": "Off",
+            "accent": "linear-gradient(90deg,#fb7185,#f97316)",
+        },
+        {
+            "key": "record_passing_yards",
+            "label": "Passing",
+            "short": "Pass",
+            "accent": "linear-gradient(90deg,#f97316,#facc15)",
+        },
+        {
+            "key": "record_rushing_yards",
+            "label": "Rushing",
+            "short": "Rush",
+            "accent": "linear-gradient(90deg,#22c55e,#14b8a6)",
+        },
+        {
+            "key": "record_defense_sacks",
+            "label": "Sacks",
+            "short": "Sacks",
+            "accent": "linear-gradient(90deg,#6366f1,#a855f7)",
+        },
+        {
+            "key": "player_count",
+            "label": "Depth",
+            "short": "Depth",
+            "accent": "linear-gradient(90deg,#475569,#94a3b8)",
+        },
+    ]
+    family_rows = []
+    for family in ["air-led", "balanced", "ground-led", "pressure-first"]:
+        subset = team[team["archetype"] == family].head(5)
+        family_rows.append(
+            {
+                "family": family,
+                "teams": ", ".join(_safe_text(alias) for alias in subset["team_alias"]) or "-",
+                "count": len(team[team["archetype"] == family]),
+            }
+        )
+    wall_rows = [
+        {
+            "team_alias": _safe_text(row["team_alias"]),
+            "team_name": _safe_text(row["team_name"]),
+            "archetype": _safe_text(row["archetype"]),
+            "offense_total": float(row["offense_total"]),
+            **{metric["key"]: float(row[metric["key"]]) for metric in metrics},
+        }
+        for _, row in team.iterrows()
+    ]
+    touchdown_leader = team.iloc[0]
+    balance_leader = team.assign(balance_gap=(team["record_passing_yards"] - team["record_rushing_yards"]).abs()).sort_values("balance_gap").iloc[0]
+    body = (
+        _render_stat_cards(
+            [
+                {"label": "Wall Cards", "value": _format_number(len(team))},
+                {"label": "Top TD Team", "value": f'{_safe_text(touchdown_leader["team_alias"])} · {_format_number(touchdown_leader["record_touchdowns_total"])}'},
+                {"label": "Best Balance", "value": f'{_safe_text(balance_leader["team_alias"])} · {_format_metric_value(float(balance_leader["pass_rush_ratio"]), "ratio")}'},
+                {"label": "Archetypes", "value": "4"},
+            ]
+        )
+        + '<section class="section-title">Family Notes</section>'
+        + '<section class="panel"><h3>First Teams to Scan by Style</h3>'
+        + _story_table(family_rows)
+        + "</section>"
+        + '<section class="section-title">All 32 on One Wall</section>'
+        + _render_team_wall(wall_rows, metrics)
+    )
+    html_text = _render_story_shell(
+        title=f"Team Comparison Wall {season}",
+        eyebrow="All-Team Cards",
+        intro="32개 팀을 작은 카드 단위로 압축해 한 번에 훑는 버전입니다. 에디터가 빠르게 팀 톤을 비교하거나 썸네일형 비교 콘텐츠로 옮기기 좋습니다.",
+        body=body,
+        theme="--bg: radial-gradient(circle at top left, rgba(45,212,191,0.28), transparent 28%), radial-gradient(circle at bottom right, rgba(99,102,241,0.22), transparent 32%), linear-gradient(180deg, #f1fffb 0%, #eff7ff 48%, #f8f6ff 100%); --orb: radial-gradient(circle, rgba(13,148,136,0.62), rgba(13,148,136,0.0) 72%); --accent: linear-gradient(90deg, #14b8a6, #6366f1);",
+    )
+    path = _story_root(output_root, season) / "team-comparison-wall.html"
     path.write_text(html_text, encoding="utf-8")
     return path
 
@@ -970,6 +1459,22 @@ def build_story_html_bundle(
             "tag_two": "Quadrants",
         },
         {
+            "slug": "team-comparison-board",
+            "title": f"Team Comparison Board {season}",
+            "eyebrow": "League Matrix",
+            "description": "전팀 핵심 지표를 한 화면 매트릭스로 압축한 비교 보드.",
+            "tag_one": "Matrix",
+            "tag_two": "All Teams",
+        },
+        {
+            "slug": "team-comparison-wall",
+            "title": f"Team Comparison Wall {season}",
+            "eyebrow": "All-Team Cards",
+            "description": "32개 팀을 컴팩트 카드로 동시에 훑는 비교형 HTML.",
+            "tag_one": "Cards",
+            "tag_two": "Overview",
+        },
+        {
             "slug": "skill-stars",
             "title": f"Skill Stars {season}",
             "eyebrow": "Player Showcase",
@@ -998,6 +1503,8 @@ def build_story_html_bundle(
     paths = [
         _build_index_story(output_root, season, story_defs, frames),
         _build_strategy_story(output_root, season, frames),
+        _build_comparison_board_story(output_root, season, frames),
+        _build_comparison_wall_story(output_root, season, frames),
         _build_skill_story(output_root, season, frames),
         _build_fingerprint_story(output_root, season, frames),
         _build_roster_story(output_root, season, frames),

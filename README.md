@@ -75,6 +75,8 @@ data/sis/reports/sis_validation_2025.html
 data/sis/stories/2025/
   index.html
   strategy-atlas.html
+  team-comparison-board.html
+  team-comparison-wall.html
   skill-stars.html
   franchise-fingerprints.html
   roster-currents.html
