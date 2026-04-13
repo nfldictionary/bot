@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GridLab Football Board</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="tool-panel">
+        <div class="panel-brand">
+          <p class="eyebrow">American Football</p>
+          <h1>GridLab</h1>
+          <p class="brand-copy">
+            Built for football tactical boards, playbook design, and frame-by-frame
+            animation simulation in one workspace.
+          </p>
+        </div>
+
+        <section class="panel-block">
+          <h2>Tools</h2>
+          <div class="tool-grid">
+            <button class="tool-button is-active" data-tool="select">선택</button>
+            <button class="tool-button" data-tool="path">라우트 그리기</button>
+            <button class="tool-button" data-tool="motion">모션 경로</button>
+            <button class="tool-button" data-tool="block">블로킹 경로</button>
+            <button class="tool-button" data-tool="rush">패스러시 경로</button>
+            <button class="tool-button" data-tool="zone">영역 그리기</button>
+            <button class="tool-button" data-tool="coverage">커버리지 원형</button>
+            <button class="tool-button" data-tool="text">텍스트</button>
+          </div>
+        </section>
+
+        <section class="panel-block">
+          <h2>Route Samples</h2>
+          <div class="route-preset-grid">
+            <button class="secondary-button route-preset-button" data-route-preset="flat">1 Flat</button>
+            <button class="secondary-button route-preset-button" data-route-preset="slant">2 Slant</button>
+            <button class="secondary-button route-preset-button" data-route-preset="comeback">3 Comeback</button>
+            <button class="secondary-button route-preset-button" data-route-preset="curl">4 Curl</button>
+            <button class="secondary-button route-preset-button" data-route-preset="out">5 Out</button>
+            <button class="secondary-button route-preset-button" data-route-preset="drag">6 Drag</button>
+            <button class="secondary-button route-preset-button" data-route-preset="corner">7 Corner</button>
+            <button class="secondary-button route-preset-button" data-route-preset="post">8 Post</button>
+            <button class="secondary-button route-preset-button" data-route-preset="fly">9 Fly</button>
+          </div>
+          <p class="panel-inline-note">선수를 먼저 선택하면 해당 위치에 바로 삽입됩니다.</p>
+        </section>
+
+        <section class="panel-block">
+          <h2>Concept Presets</h2>
+          <div id="conceptPresetGrid" class="concept-preset-grid"></div>
+        </section>
+
+        <section class="panel-block">
+          <h2>Quick Actions</h2>
+          <div class="stack-buttons">
+            <button id="deleteSelectionBtn" class="secondary-button">
+              선택 삭제
+            </button>
+            <button id="finishPathBtn" class="secondary-button">
+              경로 종료
+            </button>
+            <button id="cancelPathBtn" class="secondary-button">
+              경로 취소
+            </button>
+          </div>
+        </section>
+
+        <section class="panel-block">
+          <h2>프로젝트</h2>
+          <div class="stack-buttons">
+            <button id="resetProjectBtn" class="secondary-button">초기화</button>
+            <button id="loadDemoBtn" class="secondary-button">샘플 플레이 복원</button>
+            <button id="exportJsonBtn" class="secondary-button">JSON 저장</button>
+            <button id="importJsonBtn" class="secondary-button">JSON 불러오기</button>
+            <button id="exportPngBtn" class="secondary-button">PNG 저장</button>
+            <button id="exportSvgBtn" class="secondary-button">SVG 저장</button>
+          </div>
+          <input id="importInput" type="file" accept=".json,application/json" hidden />
+        </section>
+
+        <section class="panel-block panel-note">
+          <h2>사용 팁</h2>
+          <p>
+            프레임을 추가한 뒤 선수 위치를 바꾸면 재생 버튼으로 움직임을
+            확인할 수 있습니다. 라우트는 클릭으로 점을 찍고 <kbd>Enter</kbd> 또는
+            <span class="inline-chip">라우트 종료</span>로 확정하세요.
+          </p>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="workspace-bar">
+          <div class="workspace-bar__group">
+            <div class="segmented">
+              <button class="segment is-active" data-view="half">Vertical Half Field</button>
+              <button class="segment" data-view="full">Horizontal Full Field</button>
+            </div>
+
+            <div class="timeline-speed">
+              <label for="frameDurationRange">프레임 간격</label>
+              <input
+                id="frameDurationRange"
+                type="range"
+                min="500"
+                max="3000"
+                step="100"
+                value="1400"
+              />
+              <span id="frameDurationValue">1.4초</span>
+            </div>
+          </div>
+
+          <div class="workspace-bar__group workspace-bar__actions">
+            <button id="undoBtn" class="ghost-button">되돌리기</button>
+            <button id="redoBtn" class="ghost-button">다시 실행</button>
+            <button id="playBtn" class="primary-button">재생</button>
+            <button id="resetPlaybackBtn" class="ghost-button">처음으로</button>
+          </div>
+        </header>
+
+        <section class="board-wrapper">
+          <div class="board-meta">
+            <div class="board-meta__primary">
+              <p class="meta-label">현재 모드</p>
+              <strong id="modeLabel">선택</strong>
+              <div class="zoom-controls">
+                <span class="zoom-controls__label">확대</span>
+                <button id="zoomOutBtn" class="ghost-button zoom-button" type="button">-</button>
+                <input
+                  id="zoomRange"
+                  class="zoom-range"
+                  type="range"
+                  min="100"
+                  max="300"
+                  step="10"
+                  value="100"
+                />
+                <button id="zoomInBtn" class="ghost-button zoom-button" type="button">+</button>
+                <button id="zoomResetBtn" class="ghost-button zoom-reset" type="button">맞춤</button>
+                <strong id="zoomValue" class="zoom-value">100%</strong>
+              </div>
+              <div class="pan-controls">
+                <span class="zoom-controls__label">이동</span>
+                <div class="pan-pad">
+                  <button id="panUpBtn" class="ghost-button pan-button" type="button">↑</button>
+                  <span class="pan-pad__spacer" aria-hidden="true"></span>
+                  <button id="panLeftBtn" class="ghost-button pan-button" type="button">←</button>
+                  <button id="panCenterBtn" class="ghost-button pan-button pan-button--center" type="button">가운데</button>
+                  <button id="panRightBtn" class="ghost-button pan-button" type="button">→</button>
+                  <span class="pan-pad__spacer" aria-hidden="true"></span>
+                  <button id="panDownBtn" class="ghost-button pan-button" type="button">↓</button>
+                </div>
+              </div>
+              <div id="routeStyleControls" class="route-style-controls">
+                <span class="zoom-controls__label">경로 색상</span>
+                <input id="routeColorInput" class="route-color-input" type="color" value="#ff5a4f" />
+                <span class="zoom-controls__label">선 형태</span>
+                <select id="routeLineStyleSelect" class="route-style-select">
+                  <option value="solid">실선</option>
+                  <option value="dashed">점선</option>
+                  <option value="motion">모션 점선</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <p class="meta-label">자동 저장</p>
+              <strong id="saveStateLabel">브라우저에 저장됨</strong>
+            </div>
+          </div>
+
+          <div class="board-stage">
+            <svg
+              id="board"
+              xmlns="http://www.w3.org/2000/svg"
+              role="img"
+              aria-label="American football tactical board"
+            ></svg>
+            <div id="boardHint" class="board-hint"></div>
+          </div>
+        </section>
+
+        <section class="timeline-panel">
+          <div class="timeline-header">
+            <div>
+              <p class="meta-label">애니메이션 프레임</p>
+              <h2>플레이 타임라인</h2>
+            </div>
+            <div class="timeline-actions">
+              <button id="addFrameBtn" class="ghost-button">프레임 복제</button>
+              <button id="renameFrameBtn" class="ghost-button">이름 바꾸기</button>
+              <button id="removeFrameBtn" class="ghost-button">프레임 삭제</button>
+            </div>
+          </div>
+          <div id="frameStrip" class="frame-strip"></div>
+        </section>
+      </main>
+
+      <aside class="inspector-panel">
+        <div class="panel-block">
+          <h2>선택한 오브젝트</h2>
+          <div id="inspectorContent" class="inspector-content"></div>
+        </div>
+
+        <div class="panel-block">
+          <h2>프로젝트 정보</h2>
+          <div id="projectSummary" class="project-summary"></div>
+        </div>
+      </aside>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

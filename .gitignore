@@ -1,8 +1,3 @@
-__pycache__/
-.pytest_cache/
 .venv/
-*.pyc
+.pytest_cache/
 .DS_Store
-data/sis/raw/
-data/sis/parquet/
-data/sis/manifest.json
