@@ -124,45 +124,47 @@
         <section class="board-wrapper">
           <div class="board-meta">
             <div class="board-meta__primary">
-              <p class="meta-label">현재 모드</p>
-              <strong id="modeLabel">선택</strong>
-              <div class="zoom-controls">
-                <span class="zoom-controls__label">확대</span>
-                <button id="zoomOutBtn" class="ghost-button zoom-button" type="button">-</button>
-                <input
-                  id="zoomRange"
-                  class="zoom-range"
-                  type="range"
-                  min="100"
-                  max="300"
-                  step="10"
-                  value="100"
-                />
-                <button id="zoomInBtn" class="ghost-button zoom-button" type="button">+</button>
-                <button id="zoomResetBtn" class="ghost-button zoom-reset" type="button">맞춤</button>
-                <strong id="zoomValue" class="zoom-value">100%</strong>
+              <div class="board-status">
+                <p class="meta-label">현재 모드</p>
+                <strong id="modeLabel">선택</strong>
               </div>
-              <div class="pan-controls">
-                <span class="zoom-controls__label">이동</span>
-                <div class="pan-pad">
-                  <button id="panUpBtn" class="ghost-button pan-button" type="button">↑</button>
-                  <span class="pan-pad__spacer" aria-hidden="true"></span>
-                  <button id="panLeftBtn" class="ghost-button pan-button" type="button">←</button>
-                  <button id="panCenterBtn" class="ghost-button pan-button pan-button--center" type="button">가운데</button>
-                  <button id="panRightBtn" class="ghost-button pan-button" type="button">→</button>
-                  <span class="pan-pad__spacer" aria-hidden="true"></span>
-                  <button id="panDownBtn" class="ghost-button pan-button" type="button">↓</button>
+              <div class="board-controls">
+                <div class="board-control-group zoom-controls">
+                  <span class="zoom-controls__label">확대</span>
+                  <button id="zoomOutBtn" class="ghost-button zoom-button" type="button">-</button>
+                  <input
+                    id="zoomRange"
+                    class="zoom-range"
+                    type="range"
+                    min="100"
+                    max="300"
+                    step="10"
+                    value="100"
+                  />
+                  <button id="zoomInBtn" class="ghost-button zoom-button" type="button">+</button>
+                  <button id="zoomResetBtn" class="ghost-button zoom-reset" type="button">맞춤</button>
+                  <strong id="zoomValue" class="zoom-value">100%</strong>
                 </div>
-              </div>
-              <div id="routeStyleControls" class="route-style-controls">
-                <span class="zoom-controls__label">경로 색상</span>
-                <input id="routeColorInput" class="route-color-input" type="color" value="#ff5a4f" />
-                <span class="zoom-controls__label">선 형태</span>
-                <select id="routeLineStyleSelect" class="route-style-select">
-                  <option value="solid">실선</option>
-                  <option value="dashed">점선</option>
-                  <option value="motion">모션 점선</option>
-                </select>
+                <div class="board-control-group pan-controls">
+                  <span class="zoom-controls__label">이동</span>
+                  <div class="pan-strip">
+                    <button id="panLeftBtn" class="ghost-button pan-button" type="button">←</button>
+                    <button id="panRightBtn" class="ghost-button pan-button" type="button">→</button>
+                    <button id="panUpBtn" class="ghost-button pan-button" type="button">↑</button>
+                    <button id="panDownBtn" class="ghost-button pan-button" type="button">↓</button>
+                    <button id="panCenterBtn" class="ghost-button pan-button pan-button--center" type="button">가운데</button>
+                  </div>
+                </div>
+                <div id="routeStyleControls" class="board-control-group route-style-controls">
+                  <span class="zoom-controls__label">경로 색상</span>
+                  <input id="routeColorInput" class="route-color-input" type="color" value="#ff5a4f" />
+                  <span class="zoom-controls__label">선 형태</span>
+                  <select id="routeLineStyleSelect" class="route-style-select">
+                    <option value="solid">실선</option>
+                    <option value="dashed">점선</option>
+                    <option value="motion">모션 점선</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div>

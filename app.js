@@ -116,6 +116,13 @@ const FIELD_ART = {
   href: "./AmFBfield.svg",
 };
 
+const BALL_ART = {
+  file: "ball.svg.png",
+  width: 36,
+  height: 36,
+  href: "./ball.svg.png",
+};
+
 const state = {
   view: "half",
   tool: "select",
@@ -132,6 +139,7 @@ const state = {
 
 const ui = {
   drag: null,
+  panDrag: null,
   zoneDraft: null,
   pendingPath: [],
   pointerField: null,
@@ -1121,6 +1129,7 @@ function insertConceptPreset(key) {
 function buildDefaultFormationProject() {
   const offense = defaultElevenPersonnelOffense();
   const defense = defaultFourThreeDefense();
+  const markers = driveMarkers();
 
   return {
     version: 1,
@@ -1131,7 +1140,7 @@ function buildDefaultFormationProject() {
       {
         id: uid(),
         name: "11 Personnel · 4-3 Base",
-        objects: [...offense, ...defense],
+        objects: [...offense, ...defense, ...markers],
       },
     ].map((frame) => ensureSingleBall(frame)),
   };
@@ -1525,6 +1534,19 @@ function screenToField(event) {
   };
 }
 
+function canPanViewport() {
+  return state.zoom > 1.001;
+}
+
+function canDragFieldViewport() {
+  return state.tool === "select" && !ui.playing && canPanViewport();
+}
+
+function syncBoardInteractionState() {
+  refs.board.classList.toggle("is-pannable", canDragFieldViewport());
+  refs.board.classList.toggle("is-panning", Boolean(ui.panDrag));
+}
+
 function getBoardViewBox(preset = currentPreset()) {
   const zoom = clamp(state.zoom || 1, 1, 3);
   const width = preset.viewBox.width / zoom;
@@ -1683,6 +1705,14 @@ function buildFieldMarkup() {
       />
       ${watermarkStart}
       ${watermarkFinish}
+      <rect
+        class="field-surface"
+        data-field-surface="true"
+        x="${fieldRect.x}"
+        y="${fieldRect.y}"
+        width="${fieldRect.width}"
+        height="${fieldRect.height}"
+      />
     </svg>
   `;
 }
@@ -1745,6 +1775,8 @@ function renderBall(object) {
   const point = mapPoint(object.cross, object.length);
   const isSelected = state.selectedId === object.id;
   const scale = object.scale ?? 1;
+  const halfWidth = BALL_ART.width / 2;
+  const halfHeight = BALL_ART.height / 2;
   return `
     <g
       data-object-id="${object.id}"
@@ -1754,22 +1786,18 @@ function renderBall(object) {
     >
       ${
         isSelected
-          ? `<ellipse rx="19" ry="13" fill="none" stroke="#ffd166" stroke-width="3.5" />`
+          ? `<ellipse rx="${halfWidth + 5}" ry="${halfHeight + 5}" fill="none" stroke="#ffd166" stroke-width="3.5" />`
           : ""
       }
-      <path
-        d="M -15 0 Q 0 -10.5 15 0 Q 0 10.5 -15 0 Z"
-        fill="#9e3f14"
-        stroke="#5a220b"
-        stroke-width="1.7"
+      <image
+        href="${BALL_ART.href}"
+        xlink:href="${BALL_ART.href}"
+        x="${-halfWidth}"
+        y="${-halfHeight}"
+        width="${BALL_ART.width}"
+        height="${BALL_ART.height}"
+        preserveAspectRatio="xMidYMid meet"
       />
-      <path d="M -11 -3.8 L -8.5 3.8" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" />
-      <path d="M 11 -3.8 L 8.5 3.8" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" />
-      <path d="M -4.8 0 L 4.8 0" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" />
-      <path d="M -3.2 -3.3 L -3.2 3.3" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" />
-      <path d="M -1  -3.3 L -1  3.3" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" />
-      <path d="M 1.2 -3.3 L 1.2 3.3" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" />
-      <path d="M 3.4 -3.3 L 3.4 3.3" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" />
     </g>
   `;
 }
@@ -2135,6 +2163,7 @@ function renderBoard() {
 
   const inner = new DOMParser().parseFromString(fieldSvg, "image/svg+xml").documentElement;
   refs.board.innerHTML = inner.innerHTML + objectsMarkup + renderPendingDrafts();
+  syncBoardInteractionState();
 }
 
 function renderFrameStrip() {
@@ -2408,7 +2437,7 @@ function renderToolbarState() {
   refs.zoomOutBtn.disabled = state.zoom <= 1;
   refs.zoomInBtn.disabled = state.zoom >= 3;
   const panBounds = getPanBounds();
-  const canPan = state.zoom > 1.001;
+  const canPan = canPanViewport();
   refs.zoomResetBtn.disabled =
     Math.abs(state.zoom - 1) < 0.001 &&
     Math.abs(state.panX) < 0.01 &&
@@ -2425,6 +2454,7 @@ function renderToolbarState() {
   refs.playBtn.textContent = ui.playing ? "일시정지" : "재생";
   refs.finishPathBtn.disabled = ui.pendingPath.length < 2;
   refs.cancelPathBtn.disabled = !ui.pendingPath.length;
+  syncBoardInteractionState();
 
   const saveLabel = ui.lastSavedAt
     ? `브라우저 저장됨 · ${ui.lastSavedAt.toLocaleTimeString("ko-KR", {
@@ -2463,7 +2493,9 @@ function renderToolbarState() {
     return;
   }
   if (state.tool === "select") {
-    refs.boardHint.textContent = "오브젝트를 드래그해 위치 조정, 우측 패널에서 세부 속성 편집";
+    refs.boardHint.textContent = canPanViewport()
+      ? "오브젝트를 드래그해 위치 조정, 빈 필드를 잡고 화면 이동"
+      : "오브젝트를 드래그해 위치 조정, 우측 패널에서 세부 속성 편집";
     return;
   }
   refs.boardHint.textContent = "필드를 클릭해 칩을 추가하세요.";
@@ -2569,37 +2601,63 @@ function handleBoardPointerDown(event) {
     return;
   }
 
-  const fieldPoint = screenToField(event);
-  if (!fieldPoint) {
-    return;
-  }
-  ui.pointerField = fieldPoint;
-
   const target = event.target.closest("[data-object-id]");
   const objectId = target?.dataset.objectId;
+  const isFieldSurface = Boolean(event.target.closest("[data-field-surface]"));
+  const fieldPoint = screenToField(event);
+  if (fieldPoint) {
+    ui.pointerField = fieldPoint;
+  }
 
   if (state.tool === "select") {
-    if (!objectId) {
-      state.selectedId = null;
+    if (objectId && fieldPoint) {
+      state.selectedId = objectId;
+      const object = findObject(objectId);
+      if (!object) {
+        renderAll();
+        return;
+      }
+
+      ui.drag = {
+        id: object.id,
+        kind: object.kind,
+        startedAt: fieldPoint,
+        snapshot: clone(object),
+        moved: false,
+      };
       renderAll();
       return;
     }
 
-    state.selectedId = objectId;
-    const object = findObject(objectId);
-    if (!object) {
-      renderAll();
+    if (isFieldSurface && canDragFieldViewport()) {
+      const visibleBox = getBoardViewBox();
+      ui.panDrag = {
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startPanX: state.panX,
+        startPanY: state.panY,
+        viewWidth: visibleBox.width,
+        viewHeight: visibleBox.height,
+        moved: false,
+      };
+      syncBoardInteractionState();
+      if (typeof refs.board.setPointerCapture === "function") {
+        try {
+          refs.board.setPointerCapture(event.pointerId);
+        } catch (error) {
+          console.debug("pointer capture skipped", error);
+        }
+      }
       return;
     }
 
-    ui.drag = {
-      id: object.id,
-      kind: object.kind,
-      startedAt: fieldPoint,
-      snapshot: clone(object),
-      moved: false,
-    };
+    state.selectedId = null;
     renderAll();
+    return;
+  }
+
+  if (!fieldPoint) {
     return;
   }
 
@@ -2675,6 +2733,24 @@ function handlePointerMove(event) {
     ui.pointerField = fieldPoint;
   }
 
+  if (ui.panDrag) {
+    const boardRect = refs.board.getBoundingClientRect();
+    if (boardRect.width > 0 && boardRect.height > 0) {
+      const deltaX = event.clientX - ui.panDrag.startClientX;
+      const deltaY = event.clientY - ui.panDrag.startClientY;
+      if (Math.hypot(deltaX, deltaY) > 4) {
+        ui.panDrag.moved = true;
+      }
+      if (!ui.panDrag.moved) {
+        return;
+      }
+      const panDeltaX = (deltaX / boardRect.width) * ui.panDrag.viewWidth;
+      const panDeltaY = (deltaY / boardRect.height) * ui.panDrag.viewHeight;
+      setPan(ui.panDrag.startPanX - panDeltaX, ui.panDrag.startPanY - panDeltaY);
+    }
+    return;
+  }
+
   if (ui.drag && fieldPoint) {
     const deltaCross = fieldPoint.cross - ui.drag.startedAt.cross;
     const deltaLength = fieldPoint.length - ui.drag.startedAt.length;
@@ -2696,7 +2772,33 @@ function handlePointerMove(event) {
   }
 }
 
-function handlePointerUp() {
+function handlePointerUp(event) {
+  if (ui.panDrag) {
+    const shouldClearSelection = !ui.panDrag.moved;
+    const pointerId = ui.panDrag.pointerId;
+    ui.panDrag = null;
+    if (
+      typeof refs.board.releasePointerCapture === "function" &&
+      typeof pointerId === "number"
+    ) {
+      try {
+        if (!refs.board.hasPointerCapture || refs.board.hasPointerCapture(pointerId)) {
+          refs.board.releasePointerCapture(pointerId);
+        }
+      } catch (error) {
+        console.debug("pointer release skipped", error);
+      }
+    }
+    syncBoardInteractionState();
+    if (shouldClearSelection) {
+      state.selectedId = null;
+      renderAll();
+    } else {
+      renderToolbarState();
+    }
+    return;
+  }
+
   if (ui.drag) {
     const moved = ui.drag.moved;
     ui.drag = null;
@@ -3092,6 +3194,7 @@ function bindEvents() {
   refs.board.addEventListener("pointerdown", handleBoardPointerDown);
   window.addEventListener("pointermove", handlePointerMove);
   window.addEventListener("pointerup", handlePointerUp);
+  window.addEventListener("pointercancel", handlePointerUp);
   window.addEventListener("keydown", handleKeydown);
   refs.frameStrip.addEventListener("click", handleFrameStripClick);
   refs.inspectorContent.addEventListener("input", handleInspectorInput);

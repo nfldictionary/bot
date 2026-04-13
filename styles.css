@@ -301,45 +301,71 @@ button:disabled {
 .board-meta {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
 .board-meta__primary {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.board-status {
   display: grid;
+  gap: 4px;
+  min-width: 88px;
+}
+
+.board-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.board-control-group {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(17, 24, 39, 0.08);
 }
 
 .zoom-controls {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
 }
 
 .route-style-controls {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
 }
 
 .pan-controls {
   display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  align-items: center;
+  flex-wrap: nowrap;
   gap: 8px;
 }
 
-.pan-pad {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, auto));
-  gap: 6px;
+.pan-strip {
+  display: flex;
   align-items: center;
-}
-
-.pan-pad__spacer {
-  width: 42px;
-  height: 36px;
+  flex-wrap: nowrap;
+  gap: 6px;
 }
 
 .zoom-controls__label {
@@ -354,7 +380,7 @@ button:disabled {
 }
 
 .zoom-range {
-  width: 140px;
+  width: 180px;
 }
 
 .zoom-value {
@@ -411,6 +437,21 @@ button:disabled {
   display: block;
   flex: 1 1 auto;
   margin: 0 auto;
+  user-select: none;
+  touch-action: none;
+}
+
+.field-surface {
+  fill: transparent;
+  pointer-events: all;
+}
+
+#board.is-pannable .field-surface {
+  cursor: grab;
+}
+
+#board.is-panning .field-surface {
+  cursor: grabbing;
 }
 
 .board-hint {
@@ -556,6 +597,14 @@ button:disabled {
 
   .inspector-panel {
     grid-template-columns: 1fr;
+  }
+
+  .board-meta__primary {
+    flex-direction: column;
+  }
+
+  .board-controls {
+    width: 100%;
   }
 
   .board-stage {
