@@ -1,0 +1,10 @@
+[project]
+name = "bot"
+version = "0.1.0"
+description = "Initial scaffold"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
