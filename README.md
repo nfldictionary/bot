@@ -60,12 +60,24 @@ python src/main.py sync-local --start-year 2024 --end-year 2025
 python src/main.py build --start-year 2024 --end-year 2025
 python src/main.py validate --start-year 2024 --end-year 2025
 python src/main.py report-html --season 2025
+python src/main.py story-html --season 2025
 ```
 
 샘플 시각화 검증 리포트는 기본적으로 아래 경로에 생성됩니다.
 
 ```text
 data/sis/reports/sis_validation_2025.html
+```
+
+스토리형 HTML 번들은 아래 경로에 생성됩니다.
+
+```text
+data/sis/stories/2025/
+  index.html
+  strategy-atlas.html
+  skill-stars.html
+  franchise-fingerprints.html
+  roster-currents.html
 ```
 
 ## 테스트

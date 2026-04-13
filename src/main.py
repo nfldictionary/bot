@@ -15,6 +15,7 @@ from sis_pipeline import (
     validate_seasons,
     write_manifest,
 )
+from sis_visual_stories import build_story_html_bundle
 
 
 def add_year_args(parser: argparse.ArgumentParser) -> None:
@@ -52,6 +53,10 @@ def build_parser() -> argparse.ArgumentParser:
     report_html.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     report_html.add_argument("--output", type=Path, default=None)
     report_html.add_argument("--limit", type=int, default=10)
+
+    story_html = subparsers.add_parser("story-html", help="Build a bundle of editorial-style HTML story pages")
+    story_html.add_argument("--season", type=int, default=2025)
+    story_html.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
 
     all_local = subparsers.add_parser("all-local", help="Copy local raw data, build parquet, and validate")
     add_year_args(all_local)
@@ -122,6 +127,14 @@ def main(argv: Optional[list[str]] = None) -> int:
             limit=args.limit,
         )
         print(f"[done] report -> {report_path}")
+        return 0
+    elif args.command == "story-html":
+        story_paths = build_story_html_bundle(
+            output_root=args.output_root,
+            season=args.season,
+        )
+        for path in story_paths:
+            print(f"[done] story -> {path}")
         return 0
     elif args.command == "all-local":
         sync_summary = copy_local_raw_data(
