@@ -67,9 +67,10 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
       --ink: #0f172a;
       --muted: #546274;
       --line: rgba(15, 23, 42, 0.12);
-      --panel: rgba(255, 255, 255, 0.78);
-      --shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
-      --radius: 26px;
+      --panel: rgba(255, 255, 255, 0.92);
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      --radius: 8px;
+      --radius-sm: 6px;
       --font: "Avenir Next", "Pretendard", "Apple SD Gothic Neo", "Segoe UI", sans-serif;
       {theme}
     }}
@@ -92,12 +93,12 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     .hero {{
       position: relative;
       overflow: hidden;
-      border-radius: calc(var(--radius) + 8px);
-      padding: 28px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,255,255,0.52));
+      border-radius: var(--radius);
+      padding: 30px;
+      background: rgba(255,255,255,0.9);
       box-shadow: var(--shadow);
-      border: 1px solid rgba(255,255,255,0.45);
-      backdrop-filter: blur(10px);
+      border: 1px solid rgba(15,23,42,0.08);
+      backdrop-filter: blur(8px);
     }}
     .hero::after {{
       content: "";
@@ -112,13 +113,13 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .eyebrow {{
       display: inline-flex;
-      padding: 9px 12px;
-      border-radius: 999px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      background: rgba(255,255,255,0.58);
+      background: rgba(255,255,255,0.86);
       border: 1px solid rgba(15,23,42,0.08);
     }}
     h1 {{
@@ -149,8 +150,8 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .nav a {{
       padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.62);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.86);
       border: 1px solid rgba(15,23,42,0.08);
       font-size: 13px;
       font-weight: 700;
@@ -181,7 +182,7 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(8px);
       padding: 20px;
     }}
     .panel h2, .panel h3 {{
@@ -203,8 +204,8 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .stat-card {{
       padding: 16px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.52);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.8);
       border: 1px solid rgba(15,23,42,0.06);
     }}
     .stat-label {{
@@ -231,8 +232,8 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .list-item {{
       padding: 14px 16px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.58);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.82);
       border: 1px solid rgba(15,23,42,0.06);
     }}
     .list-top {{
@@ -259,13 +260,13 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .track {{
       height: 10px;
-      border-radius: 999px;
+      border-radius: 2px;
       background: rgba(15,23,42,0.08);
       overflow: hidden;
     }}
     .fill {{
       height: 100%;
-      border-radius: inherit;
+      border-radius: 0;
       background: var(--accent);
     }}
     .chips {{
@@ -275,10 +276,10 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .chip {{
       padding: 7px 10px;
-      border-radius: 999px;
+      border-radius: var(--radius-sm);
       font-size: 12px;
       font-weight: 700;
-      background: rgba(255,255,255,0.68);
+      background: rgba(255,255,255,0.86);
       border: 1px solid rgba(15,23,42,0.08);
     }}
     .table-wrap {{
@@ -319,14 +320,14 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
       overflow: hidden;
       min-width: 120px;
       padding: 12px 14px;
-      border-radius: 16px;
+      border-radius: var(--radius-sm);
       border: 1px solid rgba(15,23,42,0.08);
-      background: rgba(255,255,255,0.74);
+      background: rgba(255,255,255,0.88);
     }}
     .metric-fill {{
       position: absolute;
       inset: 0 auto 0 0;
-      border-radius: inherit;
+      border-radius: 0;
       opacity: 0.22;
     }}
     .metric-value {{
@@ -353,8 +354,8 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .cluster-card {{
       padding: 18px;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.64);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.88);
       border: 1px solid rgba(15,23,42,0.08);
     }}
     .cluster-card h3 {{
@@ -373,8 +374,8 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     }}
     .wall-card {{
       padding: 18px;
-      border-radius: 24px;
-      background: rgba(255,255,255,0.66);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.9);
       border: 1px solid rgba(15,23,42,0.08);
       box-shadow: var(--shadow);
     }}
@@ -389,7 +390,7 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
       font-size: 12px;
       font-weight: 800;
       padding: 7px 10px;
-      border-radius: 999px;
+      border-radius: var(--radius-sm);
       background: rgba(15,23,42,0.06);
     }}
     .wall-team {{
@@ -417,14 +418,14 @@ def _render_story_shell(title: str, eyebrow: str, intro: str, body: str, theme: 
     .mini-track {{
       position: relative;
       height: 9px;
-      border-radius: 999px;
+      border-radius: 2px;
       overflow: hidden;
       background: rgba(15,23,42,0.08);
     }}
     .mini-fill {{
       position: absolute;
       inset: 0 auto 0 0;
-      border-radius: inherit;
+      border-radius: 0;
     }}
     .mini-value {{
       font-weight: 800;
