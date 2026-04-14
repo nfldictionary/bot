@@ -118,8 +118,8 @@ const FIELD_ART = {
 
 const BALL_ART = {
   file: "ball.svg.png",
-  width: 36,
-  height: 36,
+  width: 18,
+  height: 18,
   href: "./ball.svg.png",
 };
 
@@ -883,10 +883,12 @@ function routePathForRole(map, roleId, builder) {
   if (!player) {
     return null;
   }
-  return createPath(builder(player), {
+  const path = createPath(builder(player), {
     color: TEAM_COLORS.offense,
     width: 4,
   });
+  path.roleId = roleId;
+  return path;
 }
 
 function conceptRoutesForPreset(presetKey, map) {
@@ -1071,6 +1073,166 @@ function conceptFormationKey(presetKey) {
   return map[presetKey] || "bunch";
 }
 
+function playerRoleKeys(player) {
+  return [player.roleId, player.label, ...(player.aliases || [])].filter(Boolean);
+}
+
+function conceptRouteMap(objects) {
+  const map = new Map();
+  objects.forEach((object) => {
+    if (object.kind === "path" && object.roleId) {
+      map.set(object.roleId, object);
+    }
+  });
+  return map;
+}
+
+function pointAlongPath(points, progress) {
+  if (!Array.isArray(points) || !points.length) {
+    return { cross: 50, length: 50 };
+  }
+  if (points.length === 1) {
+    return clone(points[0]);
+  }
+
+  const normalizedProgress = clamp(progress, 0, 1);
+  const segments = [];
+  let totalLength = 0;
+
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    const length = Math.hypot(end.cross - start.cross, end.length - start.length);
+    segments.push({ start, end, length });
+    totalLength += length;
+  }
+
+  if (totalLength <= 0) {
+    return clone(points[0]);
+  }
+
+  let remaining = totalLength * normalizedProgress;
+  for (const segment of segments) {
+    if (remaining <= segment.length) {
+      const ratio = segment.length <= 0 ? 0 : remaining / segment.length;
+      return {
+        cross: round(segment.start.cross + (segment.end.cross - segment.start.cross) * ratio),
+        length: round(
+          segment.start.length + (segment.end.length - segment.start.length) * ratio,
+        ),
+      };
+    }
+    remaining -= segment.length;
+  }
+
+  return clone(points[points.length - 1]);
+}
+
+function moveConceptOffensePlayer(player, routeMap, progress) {
+  const route = playerRoleKeys(player)
+    .map((key) => routeMap.get(key))
+    .find(Boolean);
+
+  if (route) {
+    const point = pointAlongPath(route.points, progress);
+    return {
+      ...player,
+      cross: point.cross,
+      length: point.length,
+    };
+  }
+
+  const role = player.roleId || player.label || "";
+  if (["LT", "LG", "C", "RG", "RT"].includes(role)) {
+    return {
+      ...player,
+      length: clamp(round(player.length - progress * 4.2), 0, 100),
+    };
+  }
+
+  if (role === "QB") {
+    return {
+      ...player,
+      cross: clamp(round(player.cross - progress * 1.1), 0, 100),
+      length: clamp(round(player.length - progress * 5.4), 0, 100),
+    };
+  }
+
+  if (role === "HB") {
+    return {
+      ...player,
+      length: clamp(round(player.length - progress * 3.8), 0, 100),
+    };
+  }
+
+  return player;
+}
+
+function moveConceptDefensePlayer(player, progress) {
+  const role = player.roleId || player.label || "";
+
+  if (["DE", "DT", "NT", "LDE", "RDE", "LDT", "RDT"].includes(role)) {
+    return {
+      ...player,
+      length: clamp(round(player.length - progress * 1.4), 0, 100),
+    };
+  }
+
+  let crossShift = 0;
+  if (/(CB|FS|SS|S)$/.test(role)) {
+    crossShift = player.cross < 50 ? progress * 1.1 : -progress * 1.1;
+  } else if (/(OLB|MLB|LB)$/.test(role)) {
+    crossShift = player.cross < 50 ? progress * 0.7 : -progress * 0.7;
+  }
+
+  return {
+    ...player,
+    cross: clamp(round(player.cross + crossShift), 0, 100),
+    length: clamp(round(player.length - progress * 3.2), 0, 100),
+  };
+}
+
+function buildConceptMotionFrame(baseFrame, progress, label) {
+  const frame = clone(baseFrame);
+  const routeMap = conceptRouteMap(baseFrame.objects);
+
+  frame.id = uid();
+  frame.name = label;
+  frame.objects = frame.objects.map((object) => {
+    if (object.kind !== "player") {
+      return object;
+    }
+
+    if (object.team === "offense") {
+      return moveConceptOffensePlayer(object, routeMap, progress);
+    }
+
+    if (object.team === "defense") {
+      return moveConceptDefensePlayer(object, progress);
+    }
+
+    return object;
+  });
+
+  const qb = frame.objects.find(
+    (object) => object.kind === "player" && playerRoleKeys(object).includes("QB"),
+  );
+  if (qb) {
+    frame.objects = frame.objects.map((object) =>
+      object.kind === "ball"
+        ? {
+            ...object,
+            cross: qb.cross,
+            length: clamp(round(qb.length - 2.2), 0, 100),
+            rotation: round(-14 + progress * 4),
+          }
+        : object,
+    );
+  }
+
+  return ensureSingleBall(frame);
+}
+
 function buildConceptFrame(definition) {
   const offense = buildOffensiveFormationPlayers(conceptFormationKey(definition.key));
   const map = playerMap(offense);
@@ -1097,6 +1259,34 @@ function buildConceptFrame(definition) {
   });
 }
 
+function buildConceptFrames(definition) {
+  const baseFrame = buildConceptFrame(definition);
+  const stages = [
+    {
+      progress: 0,
+      name: `${definition.label} · 셋업`,
+    },
+    {
+      progress: 0.34,
+      name: `${definition.label} · 릴리즈`,
+    },
+    {
+      progress: 0.7,
+      name: `${definition.label} · 브레이크`,
+    },
+  ];
+
+  return stages.map((stage, index) =>
+    index === 0
+      ? {
+          ...clone(baseFrame),
+          id: uid(),
+          name: stage.name,
+        }
+      : buildConceptMotionFrame(baseFrame, stage.progress, stage.name),
+  );
+}
+
 function renderConceptPresetLibrary() {
   refs.conceptPresetGrid.innerHTML = CONCEPT_PRESET_DEFS.map(
     (definition) => `
@@ -1117,11 +1307,12 @@ function insertConceptPreset(key) {
     return;
   }
 
-  const frame = buildConceptFrame(definition);
+  const frames = buildConceptFrames(definition);
   stopPlayback(false);
   state.view = "half";
-  state.frames.splice(state.currentFrameIndex + 1, 0, frame);
-  state.currentFrameIndex += 1;
+  const insertAt = state.currentFrameIndex + 1;
+  state.frames.splice(insertAt, 0, ...frames);
+  state.currentFrameIndex = insertAt;
   state.selectedId = null;
   commitProject();
 }
@@ -1786,7 +1977,7 @@ function renderBall(object) {
     >
       ${
         isSelected
-          ? `<ellipse rx="${halfWidth + 5}" ry="${halfHeight + 5}" fill="none" stroke="#ffd166" stroke-width="3.5" />`
+          ? `<ellipse rx="${halfWidth + 3}" ry="${halfHeight + 3}" fill="none" stroke="#ffd166" stroke-width="3" />`
           : ""
       }
       <image
