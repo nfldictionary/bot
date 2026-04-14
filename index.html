@@ -22,6 +22,10 @@
           <h2>Tools</h2>
           <div class="tool-grid">
             <button class="tool-button is-active" data-tool="select">선택</button>
+            <button class="tool-button" data-tool="offense">공격 추가</button>
+            <button class="tool-button" data-tool="defense">수비 추가</button>
+            <button class="tool-button" data-tool="neutral">중립 추가</button>
+            <button class="tool-button" data-tool="ball">공 배치</button>
             <button class="tool-button" data-tool="path">라우트 그리기</button>
             <button class="tool-button" data-tool="motion">모션 경로</button>
             <button class="tool-button" data-tool="block">블로킹 경로</button>
@@ -114,6 +118,8 @@
           </div>
 
           <div class="workspace-bar__group workspace-bar__actions">
+            <button id="snapToggleBtn" class="ghost-button">스냅</button>
+            <button id="onionSkinBtn" class="ghost-button">오니언 스킨</button>
             <button id="undoBtn" class="ghost-button">되돌리기</button>
             <button id="redoBtn" class="ghost-button">다시 실행</button>
             <button id="playBtn" class="primary-button">재생</button>
@@ -192,6 +198,7 @@
             </div>
             <div class="timeline-actions">
               <button id="addFrameBtn" class="ghost-button">프레임 복제</button>
+              <button id="tweenFrameBtn" class="ghost-button">중간 프레임</button>
               <button id="renameFrameBtn" class="ghost-button">이름 바꾸기</button>
               <button id="removeFrameBtn" class="ghost-button">프레임 삭제</button>
             </div>
@@ -201,6 +208,16 @@
       </main>
 
       <aside class="inspector-panel">
+        <div class="panel-block">
+          <h2>플레이 설정</h2>
+          <div id="playSettingsPanel" class="play-settings"></div>
+        </div>
+
+        <div class="panel-block">
+          <h2>레이어</h2>
+          <div id="layerPanel" class="layer-panel"></div>
+        </div>
+
         <div class="panel-block">
           <h2>선택한 오브젝트</h2>
           <div id="inspectorContent" class="inspector-content"></div>

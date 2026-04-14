@@ -134,7 +134,7 @@ kbd {
 
 .tool-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -220,7 +220,8 @@ kbd {
 .ghost-button:hover,
 .segment:hover,
 .tool-button.is-active,
-.segment.is-active {
+.segment.is-active,
+.ghost-button.is-active {
   transform: translateY(-1px);
   background: rgba(31, 122, 63, 0.08);
   border-color: rgba(31, 122, 63, 0.32);
@@ -512,6 +513,81 @@ button:disabled {
   color: var(--muted);
 }
 
+.play-settings,
+.layer-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.meta-grid .field-row--full {
+  grid-column: 1 / -1;
+}
+
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-inline input[type="range"] {
+  flex: 1 1 auto;
+}
+
+.layer-list {
+  display: grid;
+  gap: 8px;
+}
+
+.layer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: #ffffff;
+}
+
+.layer-row strong {
+  font-size: 0.82rem;
+}
+
+.layer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.layer-toggle input {
+  margin: 0;
+}
+
+.panel-mini-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.guide-line {
+  stroke: rgba(31, 122, 63, 0.86);
+  stroke-width: 2.5;
+  stroke-dasharray: 10 10;
+  pointer-events: none;
+}
+
+.guide-line--secondary {
+  stroke: rgba(46, 121, 255, 0.8);
+}
+
 .inspector-content,
 .project-summary {
   display: grid;
@@ -597,6 +673,11 @@ button:disabled {
 
   .inspector-panel {
     grid-template-columns: 1fr;
+  }
+
+  .tool-grid,
+  .meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .board-meta__primary {

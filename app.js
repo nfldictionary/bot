@@ -54,6 +54,10 @@ const FIELD_PRESETS = {
 
 const TOOL_LABELS = {
   select: "선택",
+  offense: "공격 추가",
+  defense: "수비 추가",
+  neutral: "중립 추가",
+  ball: "공 배치",
   path: "라우트 그리기",
   motion: "모션 경로",
   block: "블로킹 경로",
@@ -104,6 +108,23 @@ const TEAM_COLORS = {
   neutral: "#f4d35e",
 };
 
+const LAYER_DEFS = [
+  { key: "offense", label: "공격" },
+  { key: "defense", label: "수비" },
+  { key: "neutral", label: "중립" },
+  { key: "ball", label: "공" },
+  { key: "path", label: "경로" },
+  { key: "zone", label: "영역" },
+  { key: "text", label: "텍스트" },
+  { key: "markers", label: "기준선" },
+];
+
+const HASH_CROSS = {
+  left: 38,
+  middle: 50,
+  right: 62,
+};
+
 
 const FIELD_ART = {
   file: "AmFBfield.svg",
@@ -123,6 +144,33 @@ const BALL_ART = {
   href: "./ball.svg.png",
 };
 
+function defaultLayers() {
+  return Object.fromEntries(
+    LAYER_DEFS.map((definition) => [definition.key, { visible: true, locked: false }]),
+  );
+}
+
+function defaultViewOptions() {
+  return {
+    onionSkin: true,
+    snap: true,
+  };
+}
+
+function defaultPlayMeta() {
+  return {
+    title: "GridLab Play",
+    formation: "Gun Bunch",
+    personnel: "11 Personnel",
+    down: 1,
+    distance: 10,
+    ballOn: 22,
+    hash: "middle",
+    notes: "",
+    tags: "concept, install",
+  };
+}
+
 const state = {
   view: "half",
   tool: "select",
@@ -135,6 +183,9 @@ const state = {
   currentFrameIndex: 0,
   frames: [],
   selectedId: null,
+  playMeta: defaultPlayMeta(),
+  layers: defaultLayers(),
+  viewOptions: defaultViewOptions(),
 };
 
 const ui = {
@@ -152,6 +203,7 @@ const ui = {
   playbackBaseOffset: 0,
   playbackStartFrame: 0,
   lastSavedAt: null,
+  snapGuides: [],
 };
 
 const refs = {
@@ -160,6 +212,8 @@ const refs = {
   conceptPresetGrid: document.getElementById("conceptPresetGrid"),
   frameStrip: document.getElementById("frameStrip"),
   inspectorContent: document.getElementById("inspectorContent"),
+  playSettingsPanel: document.getElementById("playSettingsPanel"),
+  layerPanel: document.getElementById("layerPanel"),
   projectSummary: document.getElementById("projectSummary"),
   modeLabel: document.getElementById("modeLabel"),
   routeStyleControls: document.getElementById("routeStyleControls"),
@@ -180,8 +234,11 @@ const refs = {
   frameDurationValue: document.getElementById("frameDurationValue"),
   importInput: document.getElementById("importInput"),
   playBtn: document.getElementById("playBtn"),
+  snapToggleBtn: document.getElementById("snapToggleBtn"),
+  onionSkinBtn: document.getElementById("onionSkinBtn"),
   finishPathBtn: document.getElementById("finishPathBtn"),
   cancelPathBtn: document.getElementById("cancelPathBtn"),
+  tweenFrameBtn: document.getElementById("tweenFrameBtn"),
 };
 
 function uid() {
@@ -208,6 +265,116 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function slugifyFilename(value) {
+  return String(value || "gridlab-play")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\u3131-\uD79D]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "gridlab-play";
+}
+
+function objectLayerKey(object) {
+  if (object.kind === "player") {
+    return object.team;
+  }
+  return object.kind;
+}
+
+function isLayerVisible(layerKey) {
+  return state.layers[layerKey]?.visible !== false;
+}
+
+function isLayerLocked(layerKey) {
+  return state.layers[layerKey]?.locked === true;
+}
+
+function isObjectVisible(object) {
+  return isLayerVisible(objectLayerKey(object));
+}
+
+function isObjectLocked(object) {
+  return isLayerLocked(objectLayerKey(object));
+}
+
+function lengthFromBallOn(ballOn) {
+  const yardLine = clamp(Number(ballOn) || 22, 1, 99);
+  return clamp(round(100 - ((yardLine + 10) / 120) * 100), 0, 100);
+}
+
+function ballOnFromLength(length) {
+  const raw = ((100 - clamp(Number(length) || 0, 0, 100)) / 100) * 120 - 10;
+  return clamp(round(raw), 1, 99);
+}
+
+function hashKeyFromCross(cross) {
+  if (cross <= 44) {
+    return "left";
+  }
+  if (cross >= 56) {
+    return "right";
+  }
+  return "middle";
+}
+
+function ballOnLabel(ballOn) {
+  const yardLine = clamp(Number(ballOn) || 22, 1, 99);
+  if (yardLine === 50) {
+    return "50";
+  }
+  if (yardLine < 50) {
+    return `Own ${yardLine}`;
+  }
+  return `Opp ${100 - yardLine}`;
+}
+
+function inferPlayMetaFromFrames(frames = []) {
+  const fallback = defaultPlayMeta();
+  const firstFrame = frames[0];
+  const ball = firstFrame?.objects?.find((object) => object.kind === "ball");
+  return {
+    ...fallback,
+    title: firstFrame?.name || fallback.title,
+    ballOn: ball ? ballOnFromLength(ball.length) : fallback.ballOn,
+    hash: ball ? hashKeyFromCross(ball.cross) : fallback.hash,
+  };
+}
+
+function normalizeLayers(layers) {
+  const base = defaultLayers();
+  if (!layers || typeof layers !== "object") {
+    return base;
+  }
+  for (const definition of LAYER_DEFS) {
+    const next = layers[definition.key] || {};
+    base[definition.key] = {
+      visible: next.visible !== false,
+      locked: next.locked === true,
+    };
+  }
+  return base;
+}
+
+function normalizeViewOptions(options) {
+  return {
+    onionSkin: options?.onionSkin !== false,
+    snap: options?.snap !== false,
+  };
+}
+
+function normalizePlayMeta(meta, frames) {
+  const inferred = inferPlayMetaFromFrames(frames);
+  return {
+    ...defaultPlayMeta(),
+    ...inferred,
+    ...(meta || {}),
+    down: clamp(Number(meta?.down || inferred.down || 1), 1, 4),
+    distance: clamp(Number(meta?.distance || inferred.distance || 10), 1, 40),
+    ballOn: clamp(Number(meta?.ballOn || inferred.ballOn || 22), 1, 99),
+    hash: ["left", "middle", "right"].includes(meta?.hash) ? meta.hash : inferred.hash,
+  };
 }
 
 function teamColor(team) {
@@ -268,6 +435,8 @@ function createPath(points, overrides = {}) {
     arrow: overrides.arrow ?? true,
     label: overrides.label || "",
     opacity: overrides.opacity ?? 1,
+    roleId: overrides.roleId || "",
+    systemMarker: overrides.systemMarker === true,
   };
 }
 
@@ -438,7 +607,7 @@ function routePresetPoints(key, origin) {
 
 function insertRoutePreset(key) {
   const preset = ROUTE_PRESET_DEFS.find((item) => item.key === key);
-  if (!preset) {
+  if (!preset || isLayerLocked("path")) {
     return;
   }
 
@@ -594,7 +763,8 @@ function ensureSingleBall(frame) {
     return frame;
   }
 
-  const withoutBalls = frame.objects.filter((object) => object.kind !== "ball");
+  const sanitized = frame.objects.filter((object) => !isLegacyMarker(object));
+  const withoutBalls = sanitized.filter((object) => object.kind !== "ball");
   const existingBall = frame.objects.find((object) => object.kind === "ball");
   const spot = existingBall
     ? {
@@ -615,21 +785,50 @@ function normalizeFrames(frames) {
   return Array.isArray(frames) ? frames.map((frame) => ensureSingleBall(frame)) : [];
 }
 
-function driveMarkers() {
+function isLegacyMarker(object) {
+  return (
+    object?.kind === "path" &&
+    (object.systemMarker === true || (
+      ["LOS", "1ST"].includes(object.label) &&
+      object.arrow === false &&
+      Number(object.width).toFixed(1) === "3.2" &&
+      resolvePathLineStyle(object) === "dashed"
+    ))
+  );
+}
+
+function driveMarkers(meta = state.playMeta) {
+  const losLength = lengthFromBallOn(meta.ballOn);
+  const gainLineBallOn = clamp(meta.ballOn + meta.distance, 1, 99);
+  const gainLineLength = lengthFromBallOn(gainLineBallOn);
   return [
     createPath(
       [
-        { cross: 3, length: 78 },
-        { cross: 97, length: 78 },
+        { cross: 3, length: losLength },
+        { cross: 97, length: losLength },
       ],
-      { color: "#f7d85c", width: 3.2, dashed: true, arrow: false, label: "LOS" },
+      {
+        color: "#f7d85c",
+        width: 3.2,
+        dashed: true,
+        arrow: false,
+        label: "LOS",
+        systemMarker: true,
+      },
     ),
     createPath(
       [
-        { cross: 3, length: 60 },
-        { cross: 97, length: 60 },
+        { cross: 3, length: gainLineLength },
+        { cross: 97, length: gainLineLength },
       ],
-      { color: "#84f6a0", width: 3.2, dashed: true, arrow: false, label: "1ST" },
+      {
+        color: "#84f6a0",
+        width: 3.2,
+        dashed: true,
+        arrow: false,
+        label: "1ST",
+        systemMarker: true,
+      },
     ),
   ];
 }
@@ -1251,7 +1450,6 @@ function buildConceptFrame(definition) {
     objects: [
       ...offense,
       ...defenseShellPlayers(),
-      ...driveMarkers(),
       ...conceptRoutesForPreset(definition.key, map),
       title,
       subtitle,
@@ -1314,24 +1512,48 @@ function insertConceptPreset(key) {
   state.frames.splice(insertAt, 0, ...frames);
   state.currentFrameIndex = insertAt;
   state.selectedId = null;
+  const conceptMeta = inferPlayMetaFromFrames([frames[0]]);
+  state.playMeta = {
+    ...state.playMeta,
+    title: definition.label,
+    formation: definition.formation,
+    personnel: "11 Personnel",
+    ballOn: conceptMeta.ballOn,
+    hash: conceptMeta.hash,
+    notes: `${definition.playbook} 계열 컨셉 프리셋. 셋업/릴리즈/브레이크 3프레임으로 자동 삽입됩니다.`,
+    tags: `${definition.key}, concept, ${definition.playbook.toLowerCase()}`,
+  };
   commitProject();
 }
 
 function buildDefaultFormationProject() {
   const offense = defaultElevenPersonnelOffense();
   const defense = defaultFourThreeDefense();
-  const markers = driveMarkers();
 
   return {
-    version: 1,
+    version: 2,
     view: "half",
     frameDuration: 1400,
+    playMeta: {
+      ...defaultPlayMeta(),
+      title: "11 Personnel · 4-3 Base",
+      formation: "11 Personnel Base",
+      personnel: "11 Personnel",
+      down: 1,
+      distance: 10,
+      ballOn: 22,
+      hash: "middle",
+      notes: "기본 정렬 프레임. 플레이 설정보다 LOS/1ST 기준선이 자동 갱신됩니다.",
+      tags: "base, install",
+    },
+    layers: defaultLayers(),
+    viewOptions: defaultViewOptions(),
     currentFrameIndex: 0,
     frames: [
       {
         id: uid(),
         name: "11 Personnel · 4-3 Base",
-        objects: [...offense, ...defense, ...markers],
+        objects: [...offense, ...defense],
       },
     ].map((frame) => ensureSingleBall(frame)),
   };
@@ -1367,32 +1589,6 @@ function buildDemoProject() {
   ];
 
   const markings = [
-    createPath(
-      [
-        { cross: 3, length: 78 },
-        { cross: 97, length: 78 },
-      ],
-      {
-        color: "#f7d85c",
-        width: 3.2,
-        dashed: true,
-        arrow: false,
-        label: "LOS",
-      },
-    ),
-    createPath(
-      [
-        { cross: 3, length: 60 },
-        { cross: 97, length: 60 },
-      ],
-      {
-        color: "#84f6a0",
-        width: 3.2,
-        dashed: true,
-        arrow: false,
-        label: "1ST",
-      },
-    ),
     createPath(
       [
         { cross: 12, length: 83 },
@@ -1527,9 +1723,23 @@ function buildDemoProject() {
   });
 
   return {
-    version: 1,
+    version: 2,
     view: "half",
     frameDuration: 1400,
+    playMeta: {
+      ...defaultPlayMeta(),
+      title: "Trips Right / Play Action",
+      formation: "Trips Right",
+      personnel: "11 Personnel",
+      down: 1,
+      distance: 10,
+      ballOn: 17,
+      hash: "middle",
+      notes: "오버와 슬랜트로 2단 레벨을 만들고, 체크다운으로 RB를 남겨둔 샘플 플레이.",
+      tags: "demo, play-action, trips",
+    },
+    layers: defaultLayers(),
+    viewOptions: defaultViewOptions(),
     currentFrameIndex: 0,
     frames: [frame1, frame2, frame3].map((frame) => ensureSingleBall(frame)),
   };
@@ -1537,11 +1747,14 @@ function buildDemoProject() {
 
 function getProjectData() {
   return {
-    version: 1,
+    version: 2,
     view: state.view,
     routeColor: state.routeColor,
     routeLineStyle: state.routeLineStyle,
     frameDuration: state.frameDuration,
+    playMeta: state.playMeta,
+    layers: state.layers,
+    viewOptions: state.viewOptions,
     currentFrameIndex: state.currentFrameIndex,
     frames: state.frames,
   };
@@ -1559,6 +1772,9 @@ function applyProjectData(project) {
   state.frames = Array.isArray(project.frames) && project.frames.length
     ? normalizeFrames(clone(project.frames))
     : buildDemoProject().frames;
+  state.playMeta = normalizePlayMeta(project.playMeta, state.frames);
+  state.layers = normalizeLayers(project.layers);
+  state.viewOptions = normalizeViewOptions(project.viewOptions);
   state.currentFrameIndex = clamp(
     project.currentFrameIndex || 0,
     0,
@@ -1567,6 +1783,7 @@ function applyProjectData(project) {
   state.selectedId = null;
   ui.pendingPath = [];
   ui.zoneDraft = null;
+  ui.snapGuides = [];
 }
 
 function pushHistory() {
@@ -1908,18 +2125,20 @@ function buildFieldMarkup() {
   `;
 }
 
-function renderPlayer(object) {
+function renderPlayer(object, options = {}) {
   const point = mapPoint(object.cross, object.length);
   const radius = object.size === "small" ? 12.8 : 18.4;
-  const isSelected = state.selectedId === object.id;
+  const interactive = options.interactive !== false;
+  const isSelected = interactive && (options.selectedId ?? state.selectedId) === object.id;
   const fill = object.color || teamColor(object.team);
   const outline = object.team === "neutral" ? "#1e1e1e" : "rgba(255,255,255,0.95)";
   return `
     <g
-      data-object-id="${object.id}"
+      ${interactive ? `data-object-id="${object.id}"` : ""}
       data-kind="player"
       transform="translate(${point.x} ${point.y}) rotate(${object.rotation})"
-      style="cursor: grab;"
+      opacity="${options.opacity ?? 1}"
+      style="${interactive ? "cursor: grab;" : "pointer-events: none;"}"
     >
       ${
         isSelected
@@ -1962,18 +2181,20 @@ function renderPlayer(object) {
   `;
 }
 
-function renderBall(object) {
+function renderBall(object, options = {}) {
   const point = mapPoint(object.cross, object.length);
-  const isSelected = state.selectedId === object.id;
+  const interactive = options.interactive !== false;
+  const isSelected = interactive && (options.selectedId ?? state.selectedId) === object.id;
   const scale = object.scale ?? 1;
   const halfWidth = BALL_ART.width / 2;
   const halfHeight = BALL_ART.height / 2;
   return `
     <g
-      data-object-id="${object.id}"
+      ${interactive ? `data-object-id="${object.id}"` : ""}
       data-kind="ball"
       transform="translate(${point.x} ${point.y}) rotate(${object.rotation}) scale(${scale})"
-      style="cursor: grab;"
+      opacity="${options.opacity ?? 1}"
+      style="${interactive ? "cursor: grab;" : "pointer-events: none;"}"
     >
       ${
         isSelected
@@ -1993,14 +2214,15 @@ function renderBall(object) {
   `;
 }
 
-function renderPath(object) {
+function renderPath(object, options = {}) {
   const points = object.points.map((point) => mapPoint(point.cross, point.length));
   const line = points.map((point) => `${point.x},${point.y}`).join(" ");
-  const isSelected = state.selectedId === object.id;
+  const interactive = options.interactive !== false;
+  const isSelected = interactive && (options.selectedId ?? state.selectedId) === object.id;
   const labelPoint = points[Math.max(0, Math.floor(points.length / 2) - 1)];
   const strokeDashArray = strokeDashArrayForPath(object);
   return `
-    <g data-object-id="${object.id}" data-kind="path" style="cursor: grab;">
+    <g ${interactive ? `data-object-id="${object.id}"` : ""} data-kind="path" opacity="${options.opacity ?? 1}" style="${interactive ? "cursor: grab;" : "pointer-events: none;"}">
       ${
         isSelected
           ? `<polyline
@@ -2042,7 +2264,7 @@ function renderPath(object) {
   `;
 }
 
-function renderZone(object) {
+function renderZone(object, options = {}) {
   const rect = mapRect(
     object.cross,
     object.length,
@@ -2053,7 +2275,8 @@ function renderZone(object) {
     x: rect.x + rect.width / 2,
     y: rect.y + rect.height / 2,
   };
-  const isSelected = state.selectedId === object.id;
+  const interactive = options.interactive !== false;
+  const isSelected = interactive && (options.selectedId ?? state.selectedId) === object.id;
   const shape =
     object.shape === "ellipse"
       ? `<ellipse
@@ -2080,7 +2303,7 @@ function renderZone(object) {
         />`;
 
   return `
-    <g data-object-id="${object.id}" data-kind="zone" style="cursor: grab;">
+    <g ${interactive ? `data-object-id="${object.id}"` : ""} data-kind="zone" opacity="${options.opacity ?? 1}" style="${interactive ? "cursor: grab;" : "pointer-events: none;"}">
       ${shape}
       ${
         isSelected
@@ -2113,11 +2336,12 @@ function renderZone(object) {
   `;
 }
 
-function renderTextObject(object) {
+function renderTextObject(object, options = {}) {
   const point = mapPoint(object.cross, object.length);
-  const isSelected = state.selectedId === object.id;
+  const interactive = options.interactive !== false;
+  const isSelected = interactive && (options.selectedId ?? state.selectedId) === object.id;
   return `
-    <g data-object-id="${object.id}" data-kind="text" style="cursor: grab;">
+    <g ${interactive ? `data-object-id="${object.id}"` : ""} data-kind="text" opacity="${options.opacity ?? 1}" style="${interactive ? "cursor: grab;" : "pointer-events: none;"}">
       ${
         isSelected
           ? `<circle cx="${point.x}" cy="${point.y}" r="20" fill="rgba(255,209,102,0.2)" stroke="#ffd166" stroke-width="3" />`
@@ -2133,6 +2357,74 @@ function renderTextObject(object) {
       >${escapeHtml(object.text)}</text>
     </g>
   `;
+}
+
+function renderObjectMarkup(object, options = {}) {
+  if (!isObjectVisible(object)) {
+    return "";
+  }
+  if (object.kind === "player") {
+    return renderPlayer(object, options);
+  }
+  if (object.kind === "ball") {
+    return renderBall(object, options);
+  }
+  if (object.kind === "path") {
+    return renderPath(object, options);
+  }
+  if (object.kind === "zone") {
+    return renderZone(object, options);
+  }
+  if (object.kind === "text") {
+    return renderTextObject(object, options);
+  }
+  return "";
+}
+
+function renderFrameObjects(frame, options = {}) {
+  return frame.objects.map((object) => renderObjectMarkup(object, options)).join("");
+}
+
+function renderSystemMarkers() {
+  if (!isLayerVisible("markers")) {
+    return "";
+  }
+  const markers = driveMarkers(state.playMeta)
+    .map((object) => renderPath(object, { interactive: false, selectedId: null, opacity: 0.94 }))
+    .join("");
+  const hashCross = HASH_CROSS[state.playMeta.hash] ?? HASH_CROSS.middle;
+  const losLength = driveMarkers(state.playMeta)[0].points[0].length;
+  const spot = mapPoint(hashCross, losLength);
+  return markers + `
+    <g opacity="0.95" pointer-events="none">
+      <circle cx="${spot.x}" cy="${spot.y}" r="8" fill="#ffffff" stroke="#1f7a3f" stroke-width="3" />
+      <text x="${spot.x}" y="${spot.y + 1}" fill="#1f7a3f" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle">
+        ${escapeHtml(state.playMeta.hash === "middle" ? "M" : state.playMeta.hash === "left" ? "L" : "R")}
+      </text>
+    </g>
+  `;
+}
+
+function renderOnionSkin() {
+  if (ui.playing || !state.viewOptions.onionSkin) {
+    return "";
+  }
+  const fragments = [];
+  const previous = getFrameByIndex(state.currentFrameIndex - 1);
+  const next = getFrameByIndex(state.currentFrameIndex + 1);
+  if (previous) {
+    fragments.push(`<g opacity="0.18">${renderFrameObjects(previous, {
+      interactive: false,
+      selectedId: null,
+    })}</g>`);
+  }
+  if (next) {
+    fragments.push(`<g opacity="0.14">${renderFrameObjects(next, {
+      interactive: false,
+      selectedId: null,
+    })}</g>`);
+  }
+  return fragments.join("");
 }
 
 function renderPendingDrafts() {
@@ -2212,6 +2504,19 @@ function renderPendingDrafts() {
       `);
     });
   }
+
+  ui.snapGuides.forEach((guide, index) => {
+    fragments.push(`
+      <line
+        key="snap-${index}"
+        class="guide-line ${guide.axis === "cross" ? "guide-line--secondary" : ""}"
+        x1="${guide.x1}"
+        y1="${guide.y1}"
+        x2="${guide.x2}"
+        y2="${guide.y2}"
+      />
+    `);
+  });
 
   return fragments.join("");
 }
@@ -2331,29 +2636,14 @@ function renderBoard() {
   refs.board.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
   const frame = getRenderableFrame();
-  const objectsMarkup = frame.objects
-    .map((object) => {
-      if (object.kind === "player") {
-        return renderPlayer(object);
-      }
-      if (object.kind === "ball") {
-        return renderBall(object);
-      }
-      if (object.kind === "path") {
-        return renderPath(object);
-      }
-      if (object.kind === "zone") {
-        return renderZone(object);
-      }
-      if (object.kind === "text") {
-        return renderTextObject(object);
-      }
-      return "";
-    })
-    .join("");
+  const objectsMarkup = renderFrameObjects(frame);
 
   const inner = new DOMParser().parseFromString(fieldSvg, "image/svg+xml").documentElement;
-  refs.board.innerHTML = inner.innerHTML + objectsMarkup + renderPendingDrafts();
+  refs.board.innerHTML = inner.innerHTML +
+    renderOnionSkin() +
+    renderSystemMarkers() +
+    objectsMarkup +
+    renderPendingDrafts();
   syncBoardInteractionState();
 }
 
@@ -2376,13 +2666,117 @@ function renderFrameStrip() {
     .join("");
 }
 
+function renderPlaySettings() {
+  refs.playSettingsPanel.innerHTML = `
+    <div class="meta-grid">
+      <div class="field-row field-row--full">
+        <label>플레이 제목</label>
+        <input data-play-field="title" type="text" value="${escapeHtml(state.playMeta.title)}" />
+      </div>
+      <div class="field-row">
+        <label>포메이션</label>
+        <input data-play-field="formation" type="text" value="${escapeHtml(state.playMeta.formation)}" />
+      </div>
+      <div class="field-row">
+        <label>퍼스널</label>
+        <input data-play-field="personnel" type="text" value="${escapeHtml(state.playMeta.personnel)}" />
+      </div>
+      <div class="field-row">
+        <label>다운</label>
+        <select data-play-field="down">
+          <option value="1" ${state.playMeta.down === 1 ? "selected" : ""}>1st</option>
+          <option value="2" ${state.playMeta.down === 2 ? "selected" : ""}>2nd</option>
+          <option value="3" ${state.playMeta.down === 3 ? "selected" : ""}>3rd</option>
+          <option value="4" ${state.playMeta.down === 4 ? "selected" : ""}>4th</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>거리</label>
+        <div class="field-inline">
+          <input data-play-field="distance" data-type="number" type="range" min="1" max="40" value="${state.playMeta.distance}" />
+          <strong data-play-display="distance">${state.playMeta.distance} yd</strong>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>볼 위치</label>
+        <div class="field-inline">
+          <input data-play-field="ballOn" data-type="number" type="range" min="1" max="99" value="${state.playMeta.ballOn}" />
+          <strong data-play-display="ballOn">${ballOnLabel(state.playMeta.ballOn)}</strong>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>해시</label>
+        <select data-play-field="hash">
+          <option value="left" ${state.playMeta.hash === "left" ? "selected" : ""}>Left</option>
+          <option value="middle" ${state.playMeta.hash === "middle" ? "selected" : ""}>Middle</option>
+          <option value="right" ${state.playMeta.hash === "right" ? "selected" : ""}>Right</option>
+        </select>
+      </div>
+      <div class="field-row field-row--full">
+        <label>태그</label>
+        <input data-play-field="tags" type="text" value="${escapeHtml(state.playMeta.tags)}" />
+      </div>
+      <div class="field-row field-row--full">
+        <label>노트</label>
+        <textarea data-play-field="notes">${escapeHtml(state.playMeta.notes)}</textarea>
+      </div>
+    </div>
+    <p class="panel-mini-note">LOS/1ST 기준선은 여기의 다운·거리·볼 위치를 기준으로 자동 갱신됩니다.</p>
+  `;
+}
+
+function renderLayerPanel() {
+  refs.layerPanel.innerHTML = `
+    <div class="layer-list">
+      ${LAYER_DEFS.map((definition) => `
+        <div class="layer-row">
+          <strong>${definition.label}</strong>
+          <label class="layer-toggle">
+            <input
+              data-layer-key="${definition.key}"
+              data-layer-field="visible"
+              type="checkbox"
+              ${state.layers[definition.key]?.visible !== false ? "checked" : ""}
+            />
+            표시
+          </label>
+          <label class="layer-toggle">
+            <input
+              data-layer-key="${definition.key}"
+              data-layer-field="locked"
+              type="checkbox"
+              ${state.layers[definition.key]?.locked === true ? "checked" : ""}
+            />
+            잠금
+          </label>
+        </div>
+      `).join("")}
+    </div>
+    <p class="panel-mini-note">잠금된 레이어는 보이더라도 이동·수정되지 않습니다.</p>
+  `;
+}
+
 function renderInspector() {
   const selected = findObject(state.selectedId);
+  if (selected && !isObjectVisible(selected)) {
+    state.selectedId = null;
+    return renderInspector();
+  }
   if (!selected) {
     refs.inspectorContent.innerHTML = `
       <div class="empty-state">
         보드에서 오브젝트를 선택하면 위치, 라벨, 색상, 크기, 투명도 등을 바로
         조정할 수 있습니다.
+      </div>
+    `;
+    return;
+  }
+
+  if (isObjectLocked(selected)) {
+    refs.inspectorContent.innerHTML = `
+      <div class="empty-state">
+        현재 선택한 오브젝트는 잠금 레이어에 있습니다. 우측의 레이어 패널에서 잠금을
+        해제하면 편집할 수 있습니다.
       </div>
     `;
     return;
@@ -2403,6 +2797,7 @@ function renderInspector() {
         <select data-field="team">
           <option value="offense" ${selected.team === "offense" ? "selected" : ""}>공격</option>
           <option value="defense" ${selected.team === "defense" ? "selected" : ""}>수비</option>
+          <option value="neutral" ${selected.team === "neutral" ? "selected" : ""}>중립</option>
         </select>
       </div>
       <div class="field-row">
@@ -2567,12 +2962,21 @@ function renderProjectSummary() {
   const balls = current.objects.filter((object) => object.kind === "ball");
   const offenseCount = players.filter((object) => object.team === "offense").length;
   const defenseCount = players.filter((object) => object.team === "defense").length;
+  const neutralCount = players.filter((object) => object.team === "neutral").length;
   const drawings = current.objects.length - players.length - balls.length;
 
   refs.projectSummary.innerHTML = `
     <div class="summary-card">
+      <strong>플레이</strong>
+      <p>${escapeHtml(state.playMeta.title)}</p>
+    </div>
+    <div class="summary-card">
       <strong>필드 템플릿</strong>
       <p>${FIELD_PRESETS[state.view].label}</p>
+    </div>
+    <div class="summary-card">
+      <strong>다운 & 거리</strong>
+      <p>${state.playMeta.down} down · ${state.playMeta.distance} yards · ${ballOnLabel(state.playMeta.ballOn)} · ${escapeHtml(state.playMeta.hash)}</p>
     </div>
     <div class="summary-card">
       <strong>현재 프레임</strong>
@@ -2582,11 +2986,15 @@ function renderProjectSummary() {
     </div>
     <div class="summary-card">
       <strong>칩 분포</strong>
-      <p>공격 ${offenseCount}/11 · 수비 ${defenseCount}/11 · 공 ${balls.length}/1</p>
+      <p>공격 ${offenseCount}/11 · 수비 ${defenseCount}/11 · 중립 ${neutralCount} · 공 ${balls.length}/1</p>
     </div>
     <div class="summary-card">
       <strong>드로잉 요소</strong>
       <p>라우트/영역/텍스트 ${drawings}개</p>
+    </div>
+    <div class="summary-card">
+      <strong>메모</strong>
+      <p>${escapeHtml(state.playMeta.notes || "메모 없음")}</p>
     </div>
   `;
 }
@@ -2623,6 +3031,8 @@ function renderToolbarState() {
   refs.routeLineStyleSelect.value =
     state.tool === "motion" ? "motion" : state.routeLineStyle;
   refs.routeLineStyleSelect.disabled = state.tool === "motion";
+  refs.snapToggleBtn.classList.toggle("is-active", state.viewOptions.snap);
+  refs.onionSkinBtn.classList.toggle("is-active", state.viewOptions.onionSkin);
   refs.zoomRange.value = String(Math.round(state.zoom * 100));
   refs.zoomValue.textContent = `${Math.round(state.zoom * 100)}%`;
   refs.zoomOutBtn.disabled = state.zoom <= 1;
@@ -2643,7 +3053,8 @@ function renderToolbarState() {
   refs.frameDurationRange.value = String(state.frameDuration);
   refs.frameDurationValue.textContent = `${(state.frameDuration / 1000).toFixed(1)}초`;
   refs.playBtn.textContent = ui.playing ? "일시정지" : "재생";
-  refs.finishPathBtn.disabled = ui.pendingPath.length < 2;
+  refs.tweenFrameBtn.disabled = !getFrameByIndex(state.currentFrameIndex + 1);
+  refs.finishPathBtn.disabled = ui.pendingPath.length < 2 || isLayerLocked("path");
   refs.cancelPathBtn.disabled = !ui.pendingPath.length;
   syncBoardInteractionState();
 
@@ -2657,6 +3068,10 @@ function renderToolbarState() {
 
   if (isLineDrawingTool(state.tool) && ui.pendingPath.length) {
     refs.boardHint.textContent = `경로 점 ${ui.pendingPath.length}개 · Enter로 완료, Esc로 취소`;
+    return;
+  }
+  if (isLineDrawingTool(state.tool) && isLayerLocked("path")) {
+    refs.boardHint.textContent = "경로 레이어 잠금을 해제하면 라우트/모션/블로킹을 그릴 수 있습니다.";
     return;
   }
   if (state.tool === "block") {
@@ -2689,12 +3104,30 @@ function renderToolbarState() {
       : "오브젝트를 드래그해 위치 조정, 우측 패널에서 세부 속성 편집";
     return;
   }
+  if (state.tool === "offense") {
+    refs.boardHint.textContent = "필드를 클릭해 공격 칩을 추가하세요.";
+    return;
+  }
+  if (state.tool === "defense") {
+    refs.boardHint.textContent = "필드를 클릭해 수비 칩을 추가하세요.";
+    return;
+  }
+  if (state.tool === "neutral") {
+    refs.boardHint.textContent = "필드를 클릭해 중립 칩을 추가하세요.";
+    return;
+  }
+  if (state.tool === "ball") {
+    refs.boardHint.textContent = "필드를 클릭하면 현재 프레임의 공 위치가 갱신됩니다.";
+    return;
+  }
   refs.boardHint.textContent = "필드를 클릭해 칩을 추가하세요.";
 }
 
 function renderAll() {
   renderBoard();
   renderFrameStrip();
+  renderPlaySettings();
+  renderLayerPanel();
   renderInspector();
   renderProjectSummary();
   renderToolbarState();
@@ -2710,6 +3143,7 @@ function setTool(tool) {
   if (!isLineDrawingTool(tool)) {
     ui.pendingPath = [];
   }
+  clearSnapGuides();
   renderAll();
 }
 
@@ -2787,6 +3221,145 @@ function addObjectToCurrentFrame(object) {
   state.selectedId = object.id;
 }
 
+function clearSnapGuides() {
+  ui.snapGuides = [];
+}
+
+function snapTargets(skipId) {
+  const frame = getCurrentFrame();
+  const crossTargets = [HASH_CROSS[state.playMeta.hash] ?? HASH_CROSS.middle, 50];
+  const lengthTargets = driveMarkers(state.playMeta).map((marker) => marker.points[0].length);
+
+  frame.objects.forEach((object) => {
+    if (object.id === skipId || !isObjectVisible(object)) {
+      return;
+    }
+    if (["player", "ball", "text", "zone"].includes(object.kind)) {
+      crossTargets.push(object.cross);
+      lengthTargets.push(object.length);
+    }
+  });
+
+  return { crossTargets, lengthTargets };
+}
+
+function snapValue(value, targets, threshold = 1.2) {
+  let best = null;
+  for (const target of targets) {
+    const distance = Math.abs(target - value);
+    if (distance <= threshold && (!best || distance < best.distance)) {
+      best = { value: target, distance };
+    }
+  }
+  return best;
+}
+
+function guidesForSnap(cross, length) {
+  const guides = [];
+  if (typeof cross === "number") {
+    const start = mapPoint(cross, 0);
+    const end = mapPoint(cross, 100);
+    guides.push({ axis: "cross", x1: start.x, y1: start.y, x2: end.x, y2: end.y });
+  }
+  if (typeof length === "number") {
+    const start = mapPoint(0, length);
+    const end = mapPoint(100, length);
+    guides.push({ axis: "length", x1: start.x, y1: start.y, x2: end.x, y2: end.y });
+  }
+  return guides;
+}
+
+function applySnap(point, skipId) {
+  if (!state.viewOptions.snap) {
+    clearSnapGuides();
+    return point;
+  }
+
+  const { crossTargets, lengthTargets } = snapTargets(skipId);
+  const snappedCross = snapValue(point.cross, crossTargets);
+  const snappedLength = snapValue(point.length, lengthTargets);
+  ui.snapGuides = guidesForSnap(snappedCross?.value, snappedLength?.value);
+  return {
+    cross: snappedCross ? snappedCross.value : point.cross,
+    length: snappedLength ? snappedLength.value : point.length,
+  };
+}
+
+function placeBallAt(point) {
+  const frame = getCurrentFrame();
+  const snapped = applySnap(point);
+  const existingBall = frame.objects.find((object) => object.kind === "ball");
+  if (existingBall) {
+    updateObject(existingBall.id, (object) => ({
+      ...object,
+      cross: snapped.cross,
+      length: snapped.length,
+    }));
+    state.selectedId = existingBall.id;
+  } else {
+    addObjectToCurrentFrame(createBall(snapped.cross, snapped.length));
+  }
+}
+
+function duplicateSelection() {
+  const selected = findObject(state.selectedId);
+  if (!selected || isObjectLocked(selected)) {
+    return;
+  }
+
+  const copy = clone(selected);
+  copy.id = uid();
+  if (copy.kind === "path") {
+    copy.points = copy.points.map((point) => ({
+      cross: clamp(round(point.cross + 2.4), 0, 100),
+      length: clamp(round(point.length - 2.4), 0, 100),
+    }));
+  } else if (copy.kind === "zone") {
+    copy.cross = clamp(round(copy.cross + 2.4), 0, 100 - copy.crossSize);
+    copy.length = clamp(round(copy.length - 2.4), 0, 100 - copy.lengthSize);
+  } else {
+    copy.cross = clamp(round(copy.cross + 2.4), 0, 100);
+    copy.length = clamp(round(copy.length - 2.4), 0, 100);
+  }
+  addObjectToCurrentFrame(copy);
+  commitProject();
+}
+
+function nudgeSelection(deltaCross, deltaLength) {
+  const selected = findObject(state.selectedId);
+  if (!selected || isObjectLocked(selected)) {
+    return;
+  }
+  updateObject(selected.id, (object) => applyDrag(object, deltaCross, deltaLength));
+  commitProject();
+}
+
+function insertTweenFrame() {
+  const current = getCurrentFrame();
+  const next = getFrameByIndex(state.currentFrameIndex + 1);
+  if (!current || !next) {
+    window.alert("중간 프레임을 만들려면 현재 프레임 뒤에 다음 프레임이 있어야 합니다.");
+    return;
+  }
+
+  const ids = [
+    ...current.objects.map((object) => object.id),
+    ...next.objects.map((object) => object.id).filter((id) => !current.objects.some((item) => item.id === id)),
+  ];
+  const fromMap = new Map(current.objects.map((object) => [object.id, object]));
+  const toMap = new Map(next.objects.map((object) => [object.id, object]));
+  const tween = {
+    id: uid(),
+    name: `${current.name || "현재"} → ${next.name || "다음"} · 중간`,
+    objects: ids
+      .map((id) => interpolateObject(fromMap.get(id), toMap.get(id), 0.5))
+      .filter(Boolean),
+  };
+  state.frames.splice(state.currentFrameIndex + 1, 0, ensureSingleBall(tween));
+  state.currentFrameIndex += 1;
+  commitProject();
+}
+
 function handleBoardPointerDown(event) {
   if (ui.playing) {
     return;
@@ -2805,6 +3378,10 @@ function handleBoardPointerDown(event) {
       state.selectedId = objectId;
       const object = findObject(objectId);
       if (!object) {
+        renderAll();
+        return;
+      }
+      if (isObjectLocked(object)) {
         renderAll();
         return;
       }
@@ -2853,29 +3430,64 @@ function handleBoardPointerDown(event) {
   }
 
   if (state.tool === "offense" || state.tool === "defense") {
+    if (isLayerLocked(state.tool)) {
+      return;
+    }
     if (isAddLimitReached(state.tool)) {
       renderAll();
       return;
     }
-    addObjectToCurrentFrame(createPlayer(state.tool, fieldPoint.cross, fieldPoint.length));
+    const snapped = applySnap(fieldPoint);
+    addObjectToCurrentFrame(createPlayer(state.tool, snapped.cross, snapped.length));
+    clearSnapGuides();
+    commitProject();
+    return;
+  }
+
+  if (state.tool === "neutral") {
+    if (isLayerLocked("neutral")) {
+      return;
+    }
+    const snapped = applySnap(fieldPoint);
+    addObjectToCurrentFrame(createPlayer("neutral", snapped.cross, snapped.length));
+    clearSnapGuides();
+    commitProject();
+    return;
+  }
+
+  if (state.tool === "ball") {
+    if (isLayerLocked("ball")) {
+      return;
+    }
+    placeBallAt(fieldPoint);
+    clearSnapGuides();
     commitProject();
     return;
   }
 
   if (state.tool === "text") {
+    if (isLayerLocked("text")) {
+      return;
+    }
     const value = window.prompt("필드에 배치할 텍스트를 입력하세요.", "Motion");
     if (!value) {
       return;
     }
-    addObjectToCurrentFrame(createText(fieldPoint.cross, fieldPoint.length, value));
+    const snapped = applySnap(fieldPoint);
+    addObjectToCurrentFrame(createText(snapped.cross, snapped.length, value));
+    clearSnapGuides();
     commitProject();
     return;
   }
 
   if (state.tool === "zone" || state.tool === "coverage") {
+    if (isLayerLocked("zone")) {
+      return;
+    }
+    const snapped = applySnap(fieldPoint);
     ui.zoneDraft = {
-      start: fieldPoint,
-      current: fieldPoint,
+      start: snapped,
+      current: snapped,
       overrides: zoneStyleForTool(state.tool),
     };
     renderBoard();
@@ -2884,7 +3496,10 @@ function handleBoardPointerDown(event) {
   }
 
   if (isLineDrawingTool(state.tool)) {
-    ui.pendingPath.push(fieldPoint);
+    if (isLayerLocked("path")) {
+      return;
+    }
+    ui.pendingPath.push(applySnap(fieldPoint));
     renderBoard();
     renderToolbarState();
   }
@@ -2894,19 +3509,26 @@ function applyDrag(snapshot, deltaCross, deltaLength) {
   if (snapshot.kind === "player" || snapshot.kind === "text" || snapshot.kind === "ball") {
     return {
       ...snapshot,
-      cross: clamp(snapshot.cross + deltaCross, 0, 100),
-      length: clamp(snapshot.length + deltaLength, 0, 100),
+      ...applySnap({
+        cross: clamp(snapshot.cross + deltaCross, 0, 100),
+        length: clamp(snapshot.length + deltaLength, 0, 100),
+      }, snapshot.id),
     };
   }
 
   if (snapshot.kind === "zone") {
-    return {
-      ...snapshot,
+    const snapped = applySnap({
       cross: clamp(snapshot.cross + deltaCross, 0, 100 - snapshot.crossSize),
       length: clamp(snapshot.length + deltaLength, 0, 100 - snapshot.lengthSize),
+    }, snapshot.id);
+    return {
+      ...snapshot,
+      cross: snapped.cross,
+      length: snapped.length,
     };
   }
 
+  clearSnapGuides();
   if (snapshot.kind === "path") {
     const points = snapshot.points.map((point) => ({
       cross: clamp(point.cross + deltaCross, 0, 100),
@@ -2921,7 +3543,7 @@ function applyDrag(snapshot, deltaCross, deltaLength) {
 function handlePointerMove(event) {
   const fieldPoint = screenToField(event);
   if (fieldPoint) {
-    ui.pointerField = fieldPoint;
+    ui.pointerField = state.tool === "select" ? fieldPoint : applySnap(fieldPoint);
   }
 
   if (ui.panDrag) {
@@ -2953,7 +3575,7 @@ function handlePointerMove(event) {
   }
 
   if (ui.zoneDraft && fieldPoint) {
-    ui.zoneDraft.current = fieldPoint;
+    ui.zoneDraft.current = applySnap(fieldPoint);
     renderBoard();
     return;
   }
@@ -2985,6 +3607,7 @@ function handlePointerUp(event) {
       state.selectedId = null;
       renderAll();
     } else {
+      clearSnapGuides();
       renderToolbarState();
     }
     return;
@@ -2993,6 +3616,7 @@ function handlePointerUp(event) {
   if (ui.drag) {
     const moved = ui.drag.moved;
     ui.drag = null;
+    clearSnapGuides();
     if (moved) {
       commitProject();
     } else {
@@ -3007,6 +3631,7 @@ function handlePointerUp(event) {
     const lengthSize = Math.abs(ui.zoneDraft.start.length - ui.zoneDraft.current.length);
     const overrides = ui.zoneDraft.overrides || {};
     ui.zoneDraft = null;
+    clearSnapGuides();
     if (crossSize > 1 && lengthSize > 1) {
       addObjectToCurrentFrame(createZone(cross, length, crossSize, lengthSize, overrides));
       commitProject();
@@ -3017,6 +3642,9 @@ function handlePointerUp(event) {
 }
 
 function finishPendingPath() {
+  if (isLayerLocked("path")) {
+    return;
+  }
   if (ui.pendingPath.length < 2) {
     return;
   }
@@ -3025,17 +3653,19 @@ function finishPendingPath() {
     createPath(clone(ui.pendingPath), pathStyleForTool(state.tool, selected)),
   );
   ui.pendingPath = [];
+  clearSnapGuides();
   commitProject();
 }
 
 function cancelPendingPath() {
   ui.pendingPath = [];
+  clearSnapGuides();
   renderAll();
 }
 
 function updateSelectedField(field, value) {
   const selected = findObject(state.selectedId);
-  if (!selected) {
+  if (!selected || isObjectLocked(selected)) {
     return;
   }
   updateObject(selected.id, (object) => {
@@ -3077,6 +3707,83 @@ function parseInputValue(input) {
     return input.value === "true";
   }
   return input.value;
+}
+
+function updatePlayMeta(field, value) {
+  const next = { ...state.playMeta, [field]: value };
+  if (field === "down") {
+    next.down = clamp(Number(value), 1, 4);
+  }
+  if (field === "distance") {
+    next.distance = clamp(Number(value), 1, 40);
+  }
+  if (field === "ballOn") {
+    next.ballOn = clamp(Number(value), 1, 99);
+  }
+  if (field === "hash") {
+    next.hash = ["left", "middle", "right"].includes(value) ? value : "middle";
+  }
+  state.playMeta = next;
+}
+
+function syncPlaySettingsPreview(field, input) {
+  const scope = input.closest(".field-inline");
+  if (!scope) {
+    return;
+  }
+  const display = scope.querySelector("[data-play-display]");
+  if (!display) {
+    return;
+  }
+  if (field === "distance") {
+    display.textContent = `${state.playMeta.distance} yd`;
+  }
+  if (field === "ballOn") {
+    display.textContent = ballOnLabel(state.playMeta.ballOn);
+  }
+}
+
+function handlePlaySettingsInput(event) {
+  const input = event.target.closest("[data-play-field]");
+  if (!input || input.type !== "range") {
+    return;
+  }
+  updatePlayMeta(input.dataset.playField, parseInputValue(input));
+  syncPlaySettingsPreview(input.dataset.playField, input);
+  renderBoard();
+  renderProjectSummary();
+}
+
+function handlePlaySettingsChange(event) {
+  const input = event.target.closest("[data-play-field]");
+  if (!input) {
+    return;
+  }
+  updatePlayMeta(input.dataset.playField, parseInputValue(input));
+  commitProject();
+}
+
+function handleLayerPanelChange(event) {
+  const input = event.target.closest("[data-layer-key]");
+  if (!input) {
+    return;
+  }
+  const layerKey = input.dataset.layerKey;
+  const field = input.dataset.layerField;
+  state.layers = {
+    ...state.layers,
+    [layerKey]: {
+      ...state.layers[layerKey],
+      [field]: input.checked,
+    },
+  };
+  if (field === "visible" && !input.checked) {
+    const selected = findObject(state.selectedId);
+    if (selected && objectLayerKey(selected) === layerKey) {
+      state.selectedId = null;
+    }
+  }
+  commitProject();
 }
 
 function handleInspectorInput(event) {
@@ -3214,6 +3921,10 @@ function deleteSelection() {
   if (!state.selectedId) {
     return;
   }
+  const selected = findObject(state.selectedId);
+  if (!selected || isObjectLocked(selected)) {
+    return;
+  }
   deleteObject(state.selectedId);
   commitProject();
 }
@@ -3263,6 +3974,7 @@ function downloadFile(filename, blob) {
 function svgSource() {
   const cloneSvg = refs.board.cloneNode(true);
   const preset = currentPreset();
+  cloneSvg.querySelectorAll(".field-surface, .guide-line, .guide-line--secondary").forEach((node) => node.remove());
   cloneSvg.setAttribute("xmlns", SVG_NS);
   cloneSvg.setAttribute("viewBox", `0 0 ${preset.viewBox.width} ${preset.viewBox.height}`);
   cloneSvg.setAttribute("width", preset.viewBox.width);
@@ -3275,14 +3987,14 @@ function exportJson() {
   const blob = new Blob([JSON.stringify(getProjectData(), null, 2)], {
     type: "application/json",
   });
-  downloadFile("gridlab-playbook.json", blob);
+  downloadFile(`${slugifyFilename(state.playMeta.title)}.json`, blob);
 }
 
 function exportSvg() {
   const blob = new Blob([svgSource()], {
     type: "image/svg+xml;charset=utf-8",
   });
-  downloadFile("gridlab-board.svg", blob);
+  downloadFile(`${slugifyFilename(state.playMeta.title)}.svg`, blob);
 }
 
 async function exportPng() {
@@ -3308,7 +4020,7 @@ async function exportPng() {
     if (!blob) {
       return;
     }
-    downloadFile("gridlab-board.png", blob);
+    downloadFile(`${slugifyFilename(state.playMeta.title)}.png`, blob);
   }, "image/png");
 }
 
@@ -3334,18 +4046,27 @@ function importJson(file) {
 }
 
 function handleKeydown(event) {
+  const targetTag = document.activeElement?.tagName;
+  const isFormField = ["INPUT", "TEXTAREA", "SELECT"].includes(targetTag);
+
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "d") {
+    event.preventDefault();
+    duplicateSelection();
+    return;
+  }
+
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
     event.preventDefault();
     historyStep(event.shiftKey ? 1 : -1);
     return;
   }
 
+  if (isFormField) {
+    return;
+  }
+
   if (event.key === "Delete" || event.key === "Backspace") {
-    if (
-      !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
-    ) {
-      deleteSelection();
-    }
+    deleteSelection();
     return;
   }
 
@@ -3358,6 +4079,57 @@ function handleKeydown(event) {
     cancelPendingPath();
     ui.zoneDraft = null;
     renderAll();
+  }
+
+  const key = event.key.toLowerCase();
+  const toolHotkeys = {
+    v: "select",
+    o: "offense",
+    d: "defense",
+    n: "neutral",
+    b: "ball",
+    r: "path",
+    m: "motion",
+    g: "block",
+    x: "rush",
+    z: "zone",
+    c: "coverage",
+    t: "text",
+  };
+  if (toolHotkeys[key]) {
+    event.preventDefault();
+    setTool(toolHotkeys[key]);
+    return;
+  }
+
+  if (key === "i") {
+    event.preventDefault();
+    insertTweenFrame();
+    return;
+  }
+
+  if (!state.selectedId) {
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    nudgeSelection(0, -0.6);
+    return;
+  }
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    nudgeSelection(0, 0.6);
+    return;
+  }
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    nudgeSelection(-0.6, 0);
+    return;
+  }
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    nudgeSelection(0.6, 0);
   }
 }
 
@@ -3390,6 +4162,9 @@ function bindEvents() {
   refs.frameStrip.addEventListener("click", handleFrameStripClick);
   refs.inspectorContent.addEventListener("input", handleInspectorInput);
   refs.inspectorContent.addEventListener("change", handleInspectorChange);
+  refs.playSettingsPanel.addEventListener("input", handlePlaySettingsInput);
+  refs.playSettingsPanel.addEventListener("change", handlePlaySettingsChange);
+  refs.layerPanel.addEventListener("change", handleLayerPanelChange);
 
   refs.frameDurationRange.addEventListener("input", () => {
     state.frameDuration = Number(refs.frameDurationRange.value);
@@ -3412,6 +4187,17 @@ function bindEvents() {
   refs.panRightBtn.addEventListener("click", () => nudgePan("right"));
   refs.panDownBtn.addEventListener("click", () => nudgePan("down"));
   refs.panCenterBtn.addEventListener("click", () => setPan(0, 0));
+  refs.snapToggleBtn.addEventListener("click", () => {
+    state.viewOptions = { ...state.viewOptions, snap: !state.viewOptions.snap };
+    commitProject();
+  });
+  refs.onionSkinBtn.addEventListener("click", () => {
+    state.viewOptions = {
+      ...state.viewOptions,
+      onionSkin: !state.viewOptions.onionSkin,
+    };
+    commitProject();
+  });
   refs.routeColorInput.addEventListener("input", () => {
     state.routeColor = refs.routeColorInput.value;
     persistProject();
@@ -3437,6 +4223,7 @@ function bindEvents() {
   document.getElementById("finishPathBtn").addEventListener("click", finishPendingPath);
   document.getElementById("cancelPathBtn").addEventListener("click", cancelPendingPath);
   document.getElementById("addFrameBtn").addEventListener("click", addFrame);
+  refs.tweenFrameBtn.addEventListener("click", insertTweenFrame);
   document.getElementById("removeFrameBtn").addEventListener("click", removeFrame);
   document.getElementById("renameFrameBtn").addEventListener("click", renameFrame);
   document
