@@ -1,0 +1,13 @@
+{
+  "runId": "20260506-012700-coaching-tree-app",
+  "neo4jDatabase": "neo4j",
+  "constraintsCreated": 0,
+  "indexesCreated": 0,
+  "nodesImported": 0,
+  "relationshipsImported": 0,
+  "rowsSkipped": 0,
+  "errors": [
+    "NEO4J_URI was not set; import manifest recorded a dry-run style skip."
+  ],
+  "importedAt": "2026-05-06T10:33:48"
+}

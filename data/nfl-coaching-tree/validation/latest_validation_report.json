@@ -1,0 +1,18 @@
+{
+  "runId": "20260506-012700-coaching-tree-app",
+  "generatedAt": "2026-05-06T10:33:48",
+  "repoPath": "<TARGET_REPO_PATH>",
+  "localDataRoot": "<LOCAL_DATA_ROOT>",
+  "counts": {
+    "coaches": 47,
+    "franchises": 61,
+    "teamAliases": 61,
+    "staffTenures": 25,
+    "workedUnderEdges": 0,
+    "claims": 9
+  },
+  "unresolvedCoachReferences": 3,
+  "unresolvedTeamReferences": 1,
+  "ambiguousRelationships": 0,
+  "status": "warn"
+}

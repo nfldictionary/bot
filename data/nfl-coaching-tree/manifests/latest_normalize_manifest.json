@@ -1,0 +1,19 @@
+{
+  "runId": "20260506-012700-coaching-tree-app",
+  "stagingInputDir": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/staging",
+  "canonicalOutputDir": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/canonical",
+  "coachesWritten": 47,
+  "franchisesWritten": 61,
+  "aliasesWritten": 61,
+  "staffTenuresWritten": 25,
+  "workedUnderEdgesWritten": 0,
+  "protegeEdgesWritten": 0,
+  "lineageEdgesWritten": 0,
+  "influenceEdgesWritten": 0,
+  "sourcesWritten": 9,
+  "claimsWritten": 9,
+  "unresolvedCoachReferences": 3,
+  "unresolvedTeamReferences": 0,
+  "ambiguousRelationships": 0,
+  "generatedAt": "2026-05-06T10:33:48"
+}

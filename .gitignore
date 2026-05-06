@@ -1,3 +1,12 @@
 .venv/
 .pytest_cache/
 .DS_Store
+__pycache__/
+*.pyc
+.cache/nfl-coaching-tree/
+data/nfl-coaching-tree/raw/
+*.html.snapshot
+*.raw.json
+*.tmp
+config/nflCoachingTreeMigration.config.local.json
+nfl-coaching-tree-data/
