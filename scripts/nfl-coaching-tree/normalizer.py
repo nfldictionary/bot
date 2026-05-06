@@ -22,6 +22,7 @@ def run_normalize(config: RuntimeConfig) -> dict[str, Any]:
     staging_directory = read_jsonl(config.staging_dir / STAGING_FILENAMES["directory_coaches"])
     staging_career = read_jsonl(config.staging_dir / STAGING_FILENAMES["career_history"])
     staging_worked_under = read_jsonl(config.staging_dir / STAGING_FILENAMES["worked_under"])
+    staging_proteges = read_jsonl(config.staging_dir / STAGING_FILENAMES["proteges"])
     staging_teams = read_jsonl(config.staging_dir / STAGING_FILENAMES["teams_raw"])
     staging_sources = read_jsonl(config.staging_dir / STAGING_FILENAMES["sources"])
     if not config.dry_run:
@@ -36,7 +37,10 @@ def run_normalize(config: RuntimeConfig) -> dict[str, Any]:
         coaches,
     )
     lineage_edges = list(worked_under_edges)
-    protege_edges: list[dict[str, Any]] = []
+    protege_edges, protege_unresolved, protege_ambiguous = normalize_protege_edges(
+        staging_proteges,
+        coaches,
+    )
     influence_edges: list[dict[str, Any]] = []
     claims = normalize_claims(staging_profiles, staging_worked_under)
 
@@ -66,9 +70,9 @@ def run_normalize(config: RuntimeConfig) -> dict[str, Any]:
         "influenceEdgesWritten": len(influence_edges),
         "sourcesWritten": len(staging_sources),
         "claimsWritten": len(claims),
-        "unresolvedCoachReferences": len(unresolved_coach_refs),
+        "unresolvedCoachReferences": len(unresolved_coach_refs) + len(protege_unresolved),
         "unresolvedTeamReferences": 0,
-        "ambiguousRelationships": len(ambiguous_relationships),
+        "ambiguousRelationships": len(ambiguous_relationships) + len(protege_ambiguous),
         "generatedAt": datetime.now().isoformat(timespec="seconds"),
     }
     if not config.dry_run:
@@ -200,6 +204,36 @@ def normalize_worked_under_edges(
                 "fromCoachId": row["coachId"],
                 "toCoachId": mentor_ids[0],
                 "relationshipType": "worked_under",
+                "sourceUrl": row["sourceUrl"],
+            }
+        )
+    return edges, unresolved, ambiguous
+
+
+def normalize_protege_edges(
+    protege_rows: list[dict[str, Any]],
+    coaches: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    coach_index: dict[str, list[str]] = {}
+    for coach in coaches:
+        coach_index.setdefault(normalize_name(coach["coachName"]), []).append(coach["coachId"])
+
+    edges = []
+    unresolved = []
+    ambiguous = []
+    for row in protege_rows:
+        protege_ids = coach_index.get(normalize_name(row["protegeName"]), [])
+        if not protege_ids:
+            unresolved.append(row)
+            continue
+        if len(protege_ids) > 1:
+            ambiguous.append({**row, "candidateCoachIds": protege_ids})
+            continue
+        edges.append(
+            {
+                "fromCoachId": row["coachId"],
+                "toCoachId": protege_ids[0],
+                "relationshipType": "protege",
                 "sourceUrl": row["sourceUrl"],
             }
         )

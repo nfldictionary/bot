@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
+from threading import Lock
 from typing import Any
 from urllib import robotparser
 from urllib.parse import urljoin, urlparse
@@ -56,16 +58,44 @@ def run_crawl(config: RuntimeConfig) -> dict[str, Any]:
     failed_urls: list[str] = []
     skipped_urls: list[str] = []
 
+    cache_lock = Lock()
+
     for url in directory_urls + team_urls:
-        status = fetch_snapshot(config, url, raw_records, skipped_urls, failed_urls, log_path)
+        status = fetch_snapshot(config, url, raw_records, skipped_urls, failed_urls, log_path, cache_lock)
         if config.verbose:
             append_log(log_path, f"fetched {url} -> {status}")
 
     coach_profile_urls = discover_coach_profile_urls(raw_records, config.max_coaches)
-    for url in coach_profile_urls:
-        status = fetch_snapshot(config, url, raw_records, skipped_urls, failed_urls, log_path)
-        if config.verbose:
-            append_log(log_path, f"fetched profile {url} -> {status}")
+    if config.concurrency > 1 and coach_profile_urls:
+        with ThreadPoolExecutor(max_workers=config.concurrency) as executor:
+            futures = {
+                executor.submit(
+                    fetch_snapshot,
+                    config,
+                    url,
+                    raw_records,
+                    skipped_urls,
+                    failed_urls,
+                    log_path,
+                    cache_lock,
+                ): url
+                for url in coach_profile_urls
+            }
+            for future in as_completed(futures):
+                url = futures[future]
+                try:
+                    status = future.result()
+                except Exception as exc:
+                    failed_urls.append(url)
+                    append_log(log_path, f"fetch failed for {url}: {exc}")
+                    status = 500
+                if config.verbose:
+                    append_log(log_path, f"fetched profile {url} -> {status}")
+    else:
+        for url in coach_profile_urls:
+            status = fetch_snapshot(config, url, raw_records, skipped_urls, failed_urls, log_path, cache_lock)
+            if config.verbose:
+                append_log(log_path, f"fetched profile {url} -> {status}")
 
     if not config.dry_run:
         metadata_path = config.cache_dir / "response-metadata.jsonl"
@@ -133,11 +163,20 @@ def fetch_snapshot(
     skipped_urls: list[str],
     failed_urls: list[str],
     log_path: Path,
+    cache_lock: Lock | None = None,
 ) -> int:
-    cache_index = load_json(config.cache_dir / "resume-checkpoint.json", {}) or {}
-    if config.resume and url in cache_index:
-        skipped_urls.append(url)
-        return 304
+    checkpoint_path = config.cache_dir / "resume-checkpoint.json"
+    if cache_lock:
+        with cache_lock:
+            cache_index = load_json(checkpoint_path, {}) or {}
+            if config.resume and url in cache_index:
+                skipped_urls.append(url)
+                return 304
+    else:
+        cache_index = load_json(checkpoint_path, {}) or {}
+        if config.resume and url in cache_index:
+            skipped_urls.append(url)
+            return 304
 
     if config.dry_run:
         skipped_urls.append(url)
@@ -161,8 +200,14 @@ def fetch_snapshot(
                 "kind": classify_url_kind(url),
             }
             raw_records.append(row)
-            cache_index[url] = row
-            write_json(config.cache_dir / "resume-checkpoint.json", cache_index)
+            if cache_lock:
+                with cache_lock:
+                    cache_index = load_json(checkpoint_path, {}) or {}
+                    cache_index[url] = row
+                    write_json(checkpoint_path, cache_index)
+            else:
+                cache_index[url] = row
+                write_json(checkpoint_path, cache_index)
             time.sleep(config.request_delay_ms / 1000)
             return status
     except Exception as exc:

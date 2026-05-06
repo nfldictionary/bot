@@ -1,42 +1,42 @@
 {
-  "runId": "20260506-012700-coaching-tree-app",
+  "runId": "20260506-170947-coaching-tree-app",
   "sourceBaseUrl": "https://coaching-tree.app",
   "targetRepoPath": "<TARGET_REPO_PATH>",
   "localDataRoot": "<LOCAL_DATA_ROOT>",
-  "rawSnapshotDir": "<LOCAL_DATA_ROOT>/raw/coaching-tree-app/20260506-012700-coaching-tree-app",
+  "rawSnapshotDir": "<LOCAL_DATA_ROOT>/raw/coaching-tree-app/20260506-170947-coaching-tree-app",
   "stagingOutputDir": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/staging",
   "canonicalOutputDir": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/canonical",
   "validationOutputDir": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/validation",
   "importManifestPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/manifests/latest_import_manifest.json",
   "scriptVersion": "0.1.0",
   "methodologyVersion": "nfl-coaching-tree-v1",
-  "gitCommitHash": "8e4b68fb4ee34393941fc44cd66e9a686333adb0",
-  "updatedAt": "2026-05-06T10:33:48",
+  "gitCommitHash": "292f2ea54c627a50a88beeb258e969e2749a3afa",
+  "updatedAt": "2026-05-06T17:28:09",
   "crawlManifestPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/manifests/latest_crawl_manifest.json",
   "crawlSummary": {
-    "directoryPagesFetched": 2,
-    "coachProfilePagesFetched": 6,
+    "directoryPagesFetched": 180,
+    "coachProfilePagesFetched": 3303,
     "teamPagesFetched": 1,
     "failedUrls": 0
   },
   "parseManifestPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/manifests/latest_parse_manifest.json",
   "parseSummary": {
-    "directoryCoachRowsWritten": 46,
-    "profileRowsWritten": 6,
-    "careerHistoryRowsWritten": 25
+    "directoryCoachRowsWritten": 3165,
+    "profileRowsWritten": 3303,
+    "careerHistoryRowsWritten": 30487
   },
   "normalizeManifestPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/manifests/latest_normalize_manifest.json",
   "normalizeSummary": {
-    "coachesWritten": 47,
+    "coachesWritten": 3303,
     "franchisesWritten": 61,
-    "staffTenuresWritten": 25,
-    "workedUnderEdgesWritten": 0
+    "staffTenuresWritten": 30487,
+    "workedUnderEdgesWritten": 9520
   },
   "validationReportPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/validation/latest_validation_report.json",
   "validationSummary": {
     "status": "warn",
-    "unresolvedCoachReferences": 3,
-    "unresolvedTeamReferences": 1
+    "unresolvedCoachReferences": 51,
+    "unresolvedTeamReferences": 2426
   },
   "importSummary": {
     "runId": "20260506-012700-coaching-tree-app",

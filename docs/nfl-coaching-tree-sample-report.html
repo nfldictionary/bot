@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NFL Coaching Tree Sample Report</title>
+    <style>
+      :root {
+        --bg: #f3f5f4;
+        --panel: #ffffff;
+        --line: rgba(17, 24, 39, 0.12);
+        --text: #161b19;
+        --muted: #5f6b65;
+        --accent: #1f7a3f;
+        --warn: #b76e00;
+        --pass: #1f7a3f;
+        --fail: #a1271f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+        color: var(--text);
+        font: 14px/1.6 "Space Grotesk", "IBM Plex Sans", sans-serif;
+      }
+      .page {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        gap: 20px;
+      }
+      .hero,
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 20px;
+        box-shadow: 0 16px 40px rgba(16, 24, 40, 0.08);
+      }
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 12px;
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 {
+        margin-bottom: 8px;
+        font-size: 34px;
+        line-height: 1.1;
+      }
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 12px 0 0;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border: 1px solid var(--line);
+        background: #eef1ef;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 12px;
+      }
+      .badge-pass { color: var(--pass); }
+      .badge-warn { color: var(--warn); }
+      .badge-fail { color: var(--fail); }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+      }
+      .stat-card {
+        border: 1px solid var(--line);
+        padding: 16px;
+        background: #fbfcfb;
+      }
+      .stat-card__label {
+        margin-bottom: 6px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 12px;
+      }
+      .stat-card strong {
+        font-size: 28px;
+        letter-spacing: -0.04em;
+      }
+      .two-up {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 20px;
+      }
+      .table-shell {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 640px;
+      }
+      th, td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        background: #f8faf8;
+      }
+      .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px;
+      }
+      .profile-card {
+        border: 1px solid var(--line);
+        padding: 16px;
+        background: #fbfcfb;
+      }
+      .profile-card__title-row {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+      .profile-card__meta {
+        margin-bottom: 6px;
+        color: var(--muted);
+      }
+      .profile-card__body {
+        min-height: 72px;
+      }
+      .inline-pill {
+        display: inline-flex;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: #ffffff;
+        font-size: 12px;
+      }
+      .empty-state {
+        padding: 18px;
+        border: 1px dashed var(--line);
+        color: var(--muted);
+      }
+      code {
+        font-family: "IBM Plex Mono", monospace;
+        background: #eef1ef;
+        padding: 2px 6px;
+      }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      @media (max-width: 960px) {
+        .two-up { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <p class="eyebrow">Today&apos;s Development Snapshot</p>
+        <h1>NFL Coaching Tree Sample Report</h1>
+        <p>
+          This page previews the data produced today by the storage-aware migration pipeline for
+          <a href="https://coaching-tree.app" target="_blank" rel="noreferrer">coaching-tree.app</a>.
+          It summarizes raw capture, staging extraction, canonical normalization, and validation output for one sample run.
+        </p>
+        <div class="hero-meta">
+          <span class="badge">Run ID: 20260506-012700-coaching-tree-app</span>
+          <span class="badge badge-warn">Validation: warn</span>
+          <span class="badge">Source: coaching-tree.app</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Topline Counts</h2>
+        <div class="stat-grid">
+          <article class="stat-card"><p class="stat-card__label">Run ID</p><strong>20260506-012700-coaching-tree-app</strong></article><article class="stat-card"><p class="stat-card__label">Validation</p><strong>WARN</strong></article><article class="stat-card"><p class="stat-card__label">Raw Snapshots</p><strong>9</strong></article><article class="stat-card"><p class="stat-card__label">Directory Rows</p><strong>46</strong></article><article class="stat-card"><p class="stat-card__label">Profiles</p><strong>6</strong></article><article class="stat-card"><p class="stat-card__label">Career Rows</p><strong>25</strong></article><article class="stat-card"><p class="stat-card__label">Canonical Coaches</p><strong>47</strong></article><article class="stat-card"><p class="stat-card__label">Canonical Franchises</p><strong>61</strong></article>
+        </div>
+      </section>
+
+      <section class="two-up">
+        <section class="panel">
+          <h2>Directory Coach Samples</h2>
+          <div class="table-shell"><table><thead><tr><th>Coach Slug</th><th>Coach Name</th><th>Source URL</th></tr></thead><tbody><tr><td>aaron-glenn</td><td>Aaron Glenn</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-hill</td><td>Aaron Hill</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-komarek</td><td>Aaron Komarek</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-kromer</td><td>Aaron Kromer</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-mclaurin</td><td>Aaron McLaurin</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-moorehead</td><td>Aaron Moorehead</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-pelch</td><td>Aaron Pelch</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-wellman</td><td>Aaron Wellman</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>aaron-whitecotton</td><td>Aaron Whitecotton</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>abe-gibron</td><td>Abe Gibron</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>abe-stuber</td><td>Abe Stuber</td><td>https://coaching-tree.app/coaches</td></tr><tr><td>a-c-carter</td><td>A.C. Carter</td><td>https://coaching-tree.app/coaches</td></tr></tbody></table></div>
+        </section>
+        <section class="panel">
+          <h2>Storage Map</h2>
+          <div class="table-shell"><table><thead><tr><th>Data Class</th><th>Saved To</th><th>Notes</th></tr></thead><tbody><tr><td>Git repo staging</td><td>data/nfl-coaching-tree/staging/</td><td>Structured extraction rows</td></tr><tr><td>Git repo canonical</td><td>data/nfl-coaching-tree/canonical/</td><td>Normalized graph import records</td></tr><tr><td>Git repo validation</td><td>data/nfl-coaching-tree/validation/</td><td>Latest validation report and unresolved lists</td></tr><tr><td>Local raw snapshots</td><td>&lt;LOCAL_DATA_ROOT&gt;/raw/coaching-tree-app/20260506-012700-coaching-tree-app/</td><td>Raw HTML snapshots only</td></tr><tr><td>Local cache</td><td>&lt;LOCAL_DATA_ROOT&gt;/cache/coaching-tree-app/</td><td>Resume checkpoint and response metadata</td></tr><tr><td>Local exports</td><td>&lt;LOCAL_DATA_ROOT&gt;/exports/20260506-012700-coaching-tree-app/</td><td>Copied canonical files and Neo4j CSVs</td></tr></tbody></table></div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <h2>Profile Samples</h2>
+        <div class="profile-grid">
+          
+            <article class="profile-card">
+              <div class="profile-card__title-row">
+                <h3>A.C. Carter</h3>
+                <span class="inline-pill">Assistant Defensive Line</span>
+              </div>
+              <p class="profile-card__meta">Los Angeles Rams</p>
+              <p class="profile-card__meta">2022 to 2024</p>
+              <p class="profile-card__body">Explore A.C. Carter&#x27;s complete NFL coaching tree and career history (2022–2024) . See mentors, career timeline, and coaching connections.</p>
+              <a href="https://coaching-tree.app/a-c-carter" target="_blank" rel="noreferrer">Source profile</a>
+            </article>
+            
+            <article class="profile-card">
+              <div class="profile-card__title-row">
+                <h3>A.C. Patterson</h3>
+                <span class="inline-pill">Assistant Running Backs</span>
+              </div>
+              <p class="profile-card__meta">Minnesota Vikings</p>
+              <p class="profile-card__meta">2019 to 2021</p>
+              <p class="profile-card__body">Explore A.C. Patterson&#x27;s complete NFL coaching tree and career history (2019–2021) . See mentors, career timeline, and coaching connections.</p>
+              <a href="https://coaching-tree.app/a-c-patterson" target="_blank" rel="noreferrer">Source profile</a>
+            </article>
+            
+            <article class="profile-card">
+              <div class="profile-card__title-row">
+                <h3>A.J. Christoff</h3>
+                <span class="inline-pill">Defensive Backs</span>
+              </div>
+              <p class="profile-card__meta">San Francisco 49ers</p>
+              <p class="profile-card__meta">2005 to 2005</p>
+              <p class="profile-card__body">Explore A.J. Christoff&#x27;s complete NFL coaching tree and career history (2005–2005) . See mentors, career timeline, and coaching connections.</p>
+              <a href="https://coaching-tree.app/a-j-christoff" target="_blank" rel="noreferrer">Source profile</a>
+            </article>
+            
+            <article class="profile-card">
+              <div class="profile-card__title-row">
+                <h3>A.J. Neibel</h3>
+                <span class="inline-pill">Strength and Conditioning</span>
+              </div>
+              <p class="profile-card__meta">Las Vegas Raiders</p>
+              <p class="profile-card__meta">2011 to 2025</p>
+              <p class="profile-card__body">Explore A.J. Neibel&#x27;s complete NFL coaching tree and career history (2011–2025) . See mentors, career timeline, and coaching connections.</p>
+              <a href="https://coaching-tree.app/a-j-neibel" target="_blank" rel="noreferrer">Source profile</a>
+            </article>
+            
+            <article class="profile-card">
+              <div class="profile-card__title-row">
+                <h3>A.J. Werner</h3>
+                <span class="inline-pill">Offensive Line</span>
+              </div>
+              <p class="profile-card__meta">Brooklyn Dodgers</p>
+              <p class="profile-card__meta">1948 to 1948</p>
+              <p class="profile-card__body">Explore A.J. Werner&#x27;s complete NFL coaching tree and career history (1948–1948) . See mentors, career timeline, and coaching connections.</p>
+              <a href="https://coaching-tree.app/a-j-werner" target="_blank" rel="noreferrer">Source profile</a>
+            </article>
+            
+            <article class="profile-card">
+              <div class="profile-card__title-row">
+                <h3>Aaron Curry</h3>
+                <span class="inline-pill">Linebackers</span>
+              </div>
+              <p class="profile-card__meta">New York Jets</p>
+              <p class="profile-card__meta">2020 to 2025</p>
+              <p class="profile-card__body">Explore Aaron Curry&#x27;s complete NFL coaching tree and career history (2020–2025) . See mentors, career timeline, and coaching connections.</p>
+              <a href="https://coaching-tree.app/aaron-curry" target="_blank" rel="noreferrer">Source profile</a>
+            </article>
+            
+        </div>
+      </section>
+
+      <section class="two-up">
+        <section class="panel">
+          <h2>Career Timeline Samples</h2>
+          <div class="table-shell"><table><thead><tr><th>Coach</th><th>Year</th><th>Team</th><th>Role(s)</th></tr></thead><tbody><tr><td>A.C. Carter</td><td>2022</td><td>Denver Broncos</td><td>Defensive Quality Control</td></tr><tr><td>A.C. Carter</td><td>2023</td><td>Los Angeles Rams</td><td>Assistant Defensive Line</td></tr><tr><td>A.C. Carter</td><td>2024</td><td>Los Angeles Rams</td><td>Assistant Defensive Line</td></tr><tr><td>A.C. Patterson</td><td>2019</td><td>Minnesota Vikings</td><td>Offensive Quality Control</td></tr><tr><td>A.C. Patterson</td><td>2020</td><td>Minnesota Vikings</td><td>Offensive Quality Control</td></tr><tr><td>A.C. Patterson</td><td>2021</td><td>Minnesota Vikings</td><td>Assistant Running Backs, Offensive Quality Control</td></tr><tr><td>A.J. Christoff</td><td>2005</td><td>San Francisco 49ers</td><td>Defensive Backs</td></tr><tr><td>A.J. Neibel</td><td>2011</td><td>Atlanta Falcons</td><td>Strength and Conditioning</td></tr><tr><td>A.J. Neibel</td><td>2012</td><td>Atlanta Falcons</td><td>Strength and Conditioning</td></tr><tr><td>A.J. Neibel</td><td>2013</td><td>Atlanta Falcons</td><td>Strength and Conditioning</td></tr></tbody></table></div>
+        </section>
+        <section class="panel">
+          <h2>Validation Snapshot</h2>
+          <p><strong>Status:</strong> WARN</p>
+          <p><strong>Unresolved Coach References:</strong> 3</p>
+          <p><strong>Unresolved Team References:</strong> 1</p>
+          <p><strong>Ambiguous Relationships:</strong> 0</p>
+          <p><strong>Generated At:</strong> 2026-05-06T10:33:48</p>
+          <p><strong>Raw Snapshot Count:</strong> 9</p>
+        </section>
+      </section>
+
+      <section class="two-up">
+        <section class="panel">
+          <h2>Unresolved Coach References</h2>
+          <div class="table-shell"><table><thead><tr><th>Coach</th><th>Mentor Name</th><th>Source URL</th></tr></thead><tbody><tr><td>A.C. Carter</td><td>Sean McVay</td><td>https://coaching-tree.app/a-c-carter</td></tr><tr><td>A.C. Patterson</td><td>Mike Zimmer</td><td>https://coaching-tree.app/a-c-patterson</td></tr><tr><td>A.J. Christoff</td><td>Mike Nolan</td><td>https://coaching-tree.app/a-j-christoff</td></tr></tbody></table></div>
+        </section>
+        <section class="panel">
+          <h2>Unresolved Team References</h2>
+          <div class="table-shell"><table><thead><tr><th>Coach</th><th>Year</th><th>Franchise ID</th><th>Team Name</th></tr></thead><tbody><tr><td>A.J. Werner</td><td>1948</td><td>brooklyn-dodgers</td><td>Brooklyn Dodgers</td></tr></tbody></table></div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <h2>Canonical Output Summary</h2>
+        <p>
+          The canonical layer currently contains <code>47</code> coaches,
+          <code>61</code> franchises,
+          <code>25</code> staff tenure rows, and
+          <code>9</code> claims.
+        </p>
+        <p>
+          This is a deliberately small sample run with <code>--max-pages 2</code> and <code>--max-coaches 6</code>,
+          so unresolved items are expected until the crawl scope is expanded.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

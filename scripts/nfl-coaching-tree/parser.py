@@ -163,7 +163,8 @@ def parse_profile_row(source_url: str, html: str, accessed_at: str) -> dict[str,
     birth_place = (person or {}).get("birthPlace")
     alumni_of = ((person or {}).get("alumniOf") or {}).get("name")
     year_span = extract_year_span(unescape(description or ""))
-    mentor_name = extract_mentor_name(unescape(html))
+    mentor_rows = parse_relationship_table(html, r"Worked\s+Under")
+    protege_table_rows = parse_relationship_table(html, r"Prot(?:&eacute;|é)g(?:&eacute;|é)s")
 
     coach_id = slug_from_url(canonical_url or source_url)
     profile = {
@@ -199,22 +200,54 @@ def parse_profile_row(source_url: str, html: str, accessed_at: str) -> dict[str,
         )
 
     worked_under = []
-    if mentor_name:
-        worked_under.append(
-            {
-                "coachId": coach_id,
-                "coachName": unescape(name),
-                "mentorName": mentor_name,
-                "sourceUrl": source_url,
-                "accessedAt": accessed_at,
-            }
-        )
+    if mentor_rows:
+        for mentor in mentor_rows:
+            worked_under.append(
+                {
+                    "coachId": coach_id,
+                    "coachName": unescape(name),
+                    "mentorName": mentor["coachName"],
+                    "mentorSlug": mentor["coachSlug"],
+                    "teamName": mentor.get("teamName"),
+                    "years": mentor.get("years"),
+                    "sourceUrl": source_url,
+                    "accessedAt": accessed_at,
+                }
+            )
+    else:
+        for mentor_name in extract_mentor_names(unescape(html)):
+            worked_under.append(
+                {
+                    "coachId": coach_id,
+                    "coachName": unescape(name),
+                    "mentorName": mentor_name,
+                    "mentorSlug": None,
+                    "teamName": None,
+                    "years": None,
+                    "sourceUrl": source_url,
+                    "accessedAt": accessed_at,
+                }
+            )
+
+    proteges = [
+        {
+            "coachId": coach_id,
+            "coachName": unescape(name),
+            "protegeName": protege["coachName"],
+            "protegeSlug": protege["coachSlug"],
+            "teamName": protege.get("teamName"),
+            "years": protege.get("years"),
+            "sourceUrl": source_url,
+            "accessedAt": accessed_at,
+        }
+        for protege in protege_table_rows
+    ]
 
     return {
         "profile": profile,
         "career_history": career_history,
         "worked_under": worked_under,
-        "proteges": [],
+        "proteges": proteges,
     }
 
 
@@ -268,11 +301,57 @@ def extract_year_span(text: str) -> tuple[int, int] | None:
     return int(match.group(1)), int(match.group(2))
 
 
-def extract_mentor_name(text: str) -> str | None:
-    match = re.search(r"worked under ([A-Z][A-Za-z.'\- ]+)\.", text)
+def parse_relationship_table(html: str, heading_pattern: str) -> list[dict[str, Any]]:
+    heading_match = re.search(
+        rf"<h2[^>]*>[^<]*{heading_pattern}.*?</h2>",
+        html,
+        re.I | re.S,
+    )
+    if not heading_match:
+        return []
+
+    next_heading = re.search(r"<h2[^>]*>", html[heading_match.end() :], re.I | re.S)
+    section = html[heading_match.end() : heading_match.end() + next_heading.start()] if next_heading else html[heading_match.end() :]
+    tbody_match = re.search(r"<tbody>(.*?)</tbody>", section, re.I | re.S)
+    table = tbody_match.group(1) if tbody_match else section
+    rows = []
+    for row_html in re.findall(r"<tr[^>]*>(.*?)</tr>", table, re.I | re.S):
+        link_match = re.search(r'<a[^>]+href="/([^"]+)"[^>]*>\s*([^<]+?)\s*</a>', row_html, re.I | re.S)
+        if not link_match:
+            continue
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, re.I | re.S)
+        team_name = clean_cell_text(cells[1]) if len(cells) > 1 else None
+        years = clean_cell_text(cells[2]) if len(cells) > 2 else None
+        rows.append(
+            {
+                "coachSlug": link_match.group(1).strip("/"),
+                "coachName": unescape(link_match.group(2).strip()),
+                "teamName": team_name,
+                "years": years,
+            }
+        )
+    return rows
+
+
+def clean_cell_text(html_fragment: str) -> str | None:
+    text = re.sub(r"<script.*?</script>", " ", html_fragment, flags=re.I | re.S)
+    text = re.sub(r"<style.*?</style>", " ", text, flags=re.I | re.S)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = " ".join(unescape(text).split())
+    return text or None
+
+
+def extract_mentor_names(text: str) -> list[str]:
+    match = re.search(r"worked under (.+?)\.", text, re.I | re.S)
     if not match:
-        return None
-    return " ".join(match.group(1).split())
+        return []
+    raw_names = match.group(1)
+    raw_names = raw_names.replace(" and ", ", ")
+    return [
+        " ".join(name.split())
+        for name in raw_names.split(",")
+        if " ".join(name.split())
+    ]
 
 
 def slug_from_url(url: str) -> str:
