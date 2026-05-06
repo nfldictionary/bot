@@ -10,8 +10,8 @@
   "importManifestPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/manifests/latest_import_manifest.json",
   "scriptVersion": "0.1.0",
   "methodologyVersion": "nfl-coaching-tree-v1",
-  "gitCommitHash": "292f2ea54c627a50a88beeb258e969e2749a3afa",
-  "updatedAt": "2026-05-06T17:28:09",
+  "gitCommitHash": "98c250908fed65621d0e2fd22f596e4100d74ff5",
+  "updatedAt": "2026-05-06T18:04:47",
   "crawlManifestPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/manifests/latest_crawl_manifest.json",
   "crawlSummary": {
     "directoryPagesFetched": 180,
@@ -35,7 +35,7 @@
   "validationReportPath": "<TARGET_REPO_PATH>/data/nfl-coaching-tree/validation/latest_validation_report.json",
   "validationSummary": {
     "status": "warn",
-    "unresolvedCoachReferences": 51,
+    "unresolvedCoachReferences": 0,
     "unresolvedTeamReferences": 2426
   },
   "importSummary": {

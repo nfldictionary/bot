@@ -215,7 +215,9 @@ def parse_profile_row(source_url: str, html: str, accessed_at: str) -> dict[str,
                 }
             )
     else:
-        for mentor_name in extract_mentor_names(unescape(html)):
+        for mentor_name in extract_mentor_names(unescape(description or "")):
+            if not is_probable_coach_name(mentor_name):
+                continue
             worked_under.append(
                 {
                     "coachId": coach_id,
@@ -352,6 +354,19 @@ def extract_mentor_names(text: str) -> list[str]:
         for name in raw_names.split(",")
         if " ".join(name.split())
     ]
+
+
+def is_probable_coach_name(value: str) -> bool:
+    text = " ".join(unescape(value or "").split())
+    if not text:
+        return False
+    if "<" in text or ">" in text:
+        return False
+    if any(token in text.lower() for token in ("no head coach", "mentors found", "protégé", "protege", "class=")):
+        return False
+    if len(text) > 80:
+        return False
+    return bool(re.match(r"^[A-Z][A-Za-z.'\- ]+$", text))
 
 
 def slug_from_url(url: str) -> str:
